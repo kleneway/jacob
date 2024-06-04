@@ -19,7 +19,7 @@ export class TodosTable extends BaseTable {
     id: t.varchar(255).primaryKey(),
     description: t.text(),
     name: t.text(),
-    status: t.enum(["TODO", "IN_PROGRESS", "DONE", "ERROR"], {
+    status: t.enum(TodoStatus, {
       required: true,
     }),
     issueId: t.bigint().nullable(),
