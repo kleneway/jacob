@@ -1,11 +1,10 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
-import { TodosTable } from "~/server/db/tables/todos.table";
 import { TodoStatus } from "~/server/db/enums";
 
 export const todoRouter = createTRPCRouter({
   getAll: protectedProcedure.query(async ({ ctx }) => {
-    return ctx.prisma.todosTable.findMany();
+    return ctx.prisma.todo.findMany();
   }),
 
   create: protectedProcedure
@@ -17,7 +16,7 @@ export const todoRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const newTodo = await ctx.prisma.todosTable.create({
+      const newTodo = await ctx.prisma.todo.create({
         data: {
           description: input.description,
           name: input.name,
@@ -43,7 +42,7 @@ export const todoRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const updatedTodo = await ctx.prisma.todosTable.update({
+      const updatedTodo = await ctx.prisma.todo.update({
         where: { id: input.id },
         data: input,
       });
@@ -53,7 +52,7 @@ export const todoRouter = createTRPCRouter({
   delete: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      await ctx.prisma.todosTable.delete({
+      await ctx.prisma.todo.delete({
         where: { id: input.id },
       });
       return { success: true, message: "Todo deleted successfully" };
