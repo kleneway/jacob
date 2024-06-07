@@ -1,7 +1,7 @@
 import { App } from "@octokit/app";
 import * as dotenv from "dotenv";
 import { db } from "../db/db"; // Assuming db is exported from this path
-import { TodoStatus } from "../api/routers/events"; // Assuming TodoStatus is exported from this path
+import { type TodoStatus } from "~/server/db/enums"; // Correct import path for TodoStatus
 
 import {
   publishGitHubEventToQueue,
@@ -57,7 +57,7 @@ ghApp.webhooks.on("issues.opened", async (event) => {
         projectId: repository.id,
         description: payload.issue.body,
         name: payload.issue.title,
-        status: TodoStatus.TODO,
+        status: "TODO" as TodoStatus,
         position: 0,
         issueId: payload.issue.id,
         branch: null,

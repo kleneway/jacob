@@ -1,9 +1,8 @@
 import { z } from "zod";
 import { db } from "~/server/db/db";
-import { TaskType, type TodoStatus } from "~/server/db/enums";
+import { TaskType, TaskStatus, TaskSubType } from "~/server/db/enums";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 
-import { TaskStatus, TaskSubType } from "~/server/db/enums";
 import { type Language } from "~/types";
 import { getIssue, validateRepo } from "../utils";
 import { getSnapshotUrl } from "~/app/utils";
@@ -68,11 +67,11 @@ export type Prompt = {
   };
   request: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    prompts: ReturnType<any>[];
+    prompts: any[];
   };
   response: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    prompt: ReturnType<any>;
+    prompt: any;
   };
 };
 
@@ -84,7 +83,7 @@ export type Issue = {
   description: string;
   createdAt: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  comments: ReturnType<any>[];
+  comments: any[];
   author: string;
   assignee: string;
   status: "open" | "closed";
@@ -130,7 +129,7 @@ export interface Todo extends ExtractedIssueInfo {
   id: string;
   description: string;
   name: string;
-  status: TodoStatus;
+  status: "TODO" | "IN_PROGRESS" | "DONE";
   issueId?: number;
 }
 
