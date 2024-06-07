@@ -128,7 +128,7 @@ ghApp.webhooks.on("issue_comment.created", async (event) => {
 });
 
 ghApp.webhooks.on("pull_request.opened", async (event) => {
-  the { payload } = event;
+  const { payload } = event;
   const { pull_request, repository } = payload;
   console.log(
     `[${repository.full_name}] Received PR #${pull_request.number} comment created event`,
@@ -147,7 +147,7 @@ ghApp.webhooks.on("pull_request.opened", async (event) => {
 
 ghApp.webhooks.on("installation_repositories.added", async (event) => {
   const { payload } = event;
-  the { repositories_added } = payload;
+  const { repositories_added } = payload;
   const repos = repositories_added.map(({ full_name }) => full_name).join(",");
   console.log(`[${repos}] Received installation repositories added event`);
   void publishGitHubEventToQueue(event);
@@ -155,8 +155,8 @@ ghApp.webhooks.on("installation_repositories.added", async (event) => {
 
 ghApp.webhooks.on("installation.created", async (event) => {
   const { payload } = event;
-  the { repositories } = payload;
-  the repos = (repositories ?? [])
+  const { repositories } = payload;
+  const repos = (repositories ?? [])
     .map(({ full_name }) => full_name)
     .join(",");
   console.log(`[${repos}] Received installation event`);
