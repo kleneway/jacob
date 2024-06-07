@@ -147,7 +147,7 @@ ghApp.webhooks.on("installation_repositories.added", async (event) => {
 ghApp.webhooks.on("installation.created", async (event) => {
   const { payload } = event;
   const { repositories } = payload;
-  the repos = (repositories ?? [])
+  const repos = (repositories ?? [])
     .map(({ full_name }) => full_name)
     .join(",");
 
