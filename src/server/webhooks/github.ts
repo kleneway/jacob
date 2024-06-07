@@ -1,5 +1,7 @@
 import { App } from "@octokit/app";
 import * as dotenv from "dotenv";
+import { db } from "../db/db"; // Assuming db is exported from this path
+import { type TodoStatus } from "~/server/db/enums"; // Correct import path for TodoStatus
 
 import {
   publishGitHubEventToQueue,
@@ -45,6 +47,29 @@ ghApp.webhooks.on("issues.opened", async (event) => {
   } else {
     console.log(
       `[${repository.full_name}] Issue #${payload.issue.number} has no ${AT_MENTION} mention`,
+    );
+  }
+
+  // Create a new todo item in the database
+  try {
+    await db.todo.create({
+      data: {
+        projectId: repository.id,
+        description: payload.issue.body,
+        name: payload.issue.title,
+        status: "TODO" as TodoStatus,
+        position: 0,
+        issueId: payload.issue.id,
+        branch: null,
+        isArchived: false,
+      },
+    });
+    console.log(
+      `[${repository.full_name}] New todo item created for issue #${payload.issue.number}`,
+    );
+  } catch (error) {
+    console.error(
+      `Error creating todo item for issue #${payload.issue.number}: ${String(error)}`,
     );
   }
 });
@@ -104,7 +129,7 @@ ghApp.webhooks.on("pull_request_review.submitted", async (event) => {
 
   const shouldRespond =
     !!payload.review.body?.includes(AT_MENTION) ||
-    (appUsername && `${payload.pull_request.user.id}` === appUsername);
+    (appUsername && `${payload.pull_request.user.login}` === appUsername);
 
   if (
     shouldRespond &&
