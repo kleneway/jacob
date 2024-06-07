@@ -52,6 +52,9 @@ const LOCALHOST_RABBITMQ_PORT = process.env.RABBITMQ_PORT ?? 5672;
 const RABBITMQ_URL =
   process.env.RABBITMQ_URL ?? `amqp://localhost:${LOCALHOST_RABBITMQ_PORT}`;
 
+// Track emitted issues to prevent duplicate emissions
+const emittedIssues = new Set<number>();
+
 export async function initRabbitMQ({ listener }: { listener: boolean }) {
   if (channel) {
     return;
@@ -444,7 +447,8 @@ export async function onGitHubEvent(event: WebhookQueuedEvent) {
     ? extractFilePathWithArrow(issueOpenedTitle)
     : undefined;
 
-  if (issueOpened) {
+  if (issueOpened && !emittedIssues.has(event.payload.issue.id)) {
+    emittedIssues.add(event.payload.issue.id);
     await emitTaskEvent({
       ...baseEventData,
       issue: event.payload.issue,
@@ -630,159 +634,4 @@ export async function onGitHubEvent(event: WebhookQueuedEvent) {
             await runBuildCheck({
               ...baseEventData,
               path,
-              afterModifications: false,
-              repoSettings,
-            });
-            await addCommentToIssue(
-              repository,
-              eventIssueOrPRNumber,
-              installationAuthentication.token,
-              "Good news!\n\nThe build was successful! :tada:",
-            );
-            break;
-        }
-      }
-    } finally {
-      console.log(
-        `[${repository.full_name}] cleaning up repo cloned to ${path}`,
-      );
-      await cleanup();
-    }
-  } catch (error) {
-    await addFailedWorkComment(
-      repository,
-      eventIssueOrPRNumber,
-      installationAuthentication.token,
-      issueOpened,
-      prReview,
-      error as Error,
-    );
-    posthogClient.capture({
-      distinctId,
-      event: "Work Failed",
-      properties: {
-        repo: repository.full_name,
-        branch: prBranch,
-        issue: eventIssueOrPRNumber,
-      },
-    });
-  }
-  logEventDuration();
-}
-
-export type WebhookIssueOpenedEvent = EmitterWebhookEvent<"issues"> & {
-  payload: {
-    action: "opened";
-  };
-};
-
-export type WebhookIssueEditedEvent = EmitterWebhookEvent<"issues"> & {
-  payload: {
-    action: "edited";
-  };
-};
-
-export type WebhookIssueCommentCreatedEvent =
-  EmitterWebhookEvent<"issue_comment"> & {
-    payload: {
-      action: "created";
-    };
-  };
-
-type WebhookIssueCommentPullRequest =
-  EmitterWebhookEvent<"issue_comment">["payload"]["issue"]["pull_request"];
-
-export type WebhookPRCommentCreatedEvent =
-  EmitterWebhookEvent<"issue_comment"> & {
-    payload: {
-      action: "created";
-      issue: {
-        pull_request: NonNullable<WebhookIssueCommentPullRequest>;
-      };
-    };
-  };
-
-export type WebhookPullRequestOpenedEvent =
-  EmitterWebhookEvent<"pull_request"> & {
-    payload: {
-      action: "opened";
-    };
-  };
-
-export type WebhookPullRequestReviewWithCommentsSubmittedEvent =
-  EmitterWebhookEvent<"pull_request_review"> & {
-    payload: {
-      action: "submitted";
-      review: {
-        state: "changes_requested" | "commented";
-      };
-    };
-  };
-
-export type WebhookInstallationRepositoriesAddedEvent =
-  EmitterWebhookEvent<"installation_repositories"> & {
-    payload: {
-      action: "added";
-    };
-  };
-
-export type WebhookInstallationCreatedEvent =
-  EmitterWebhookEvent<"installation"> & {
-    payload: {
-      action: "created";
-    };
-  };
-
-export type WebhookQueuedEvent =
-  | WebhookIssueOpenedEvent
-  | WebhookIssueEditedEvent
-  | WebhookIssueCommentCreatedEvent
-  | WebhookPRCommentCreatedEvent
-  | WebhookPullRequestOpenedEvent
-  | WebhookPullRequestReviewWithCommentsSubmittedEvent
-  | WebhookInstallationRepositoriesAddedEvent
-  | WebhookInstallationCreatedEvent;
-
-type WithOctokit<T> = T & {
-  octokit: Octokit;
-};
-
-export type WebhookPRCommentCreatedEventWithOctokit =
-  WithOctokit<WebhookPRCommentCreatedEvent>;
-
-export type WebhookPullRequestReviewWithCommentsSubmittedEventWithOctokit =
-  WithOctokit<WebhookPullRequestReviewWithCommentsSubmittedEvent>;
-
-export const publishGitHubEventToQueue = async (
-  event: WithOctokit<WebhookQueuedEvent>,
-) => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { octokit, ...eventWithoutOctokit } = event;
-  await initRabbitMQ({ listener: false });
-  if (!channel) {
-    console.error(
-      `publishGitHubEventToQueue: ${event.id} ${event.name} : NO CHANNEL`,
-    );
-    return;
-  }
-  console.log(`publishGitHubEventToQueue: ${event.id} ${event.name}`);
-  channel.sendToQueue(
-    QUEUE_NAME,
-    Buffer.from(JSON.stringify(eventWithoutOctokit)),
-    {
-      persistent: true,
-    },
-  );
-  const repoName =
-    "repository" in event.payload
-      ? event.payload.repository.full_name
-      : ("repositories_added" in event.payload
-          ? event.payload.repositories_added
-          : event.payload.repositories ?? []
-        )
-          .map(({ full_name }) => full_name)
-          .join(",");
-  console.log(
-    `[${repoName}] publishGitHubEventToQueue: ${event.id} ${event.name}`,
-  );
-};
+              afterModifications: false
