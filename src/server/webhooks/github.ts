@@ -50,7 +50,7 @@ ghApp.webhooks.on("issues.opened", async (event) => {
 
   // Create a new todo item in the database
   try {
-    await db.todo.create({
+    await db.todos.create({
       data: {
         projectId: repository.id,
         description: payload.issue.body,
