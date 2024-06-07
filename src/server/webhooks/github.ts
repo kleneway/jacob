@@ -1,6 +1,10 @@
 import { App } from "@octokit/app";
 import * as dotenv from "dotenv";
-import { publishGitHubEventToQueue, type WebhookPRCommentCreatedEventWithOctokit, type WebhookPullRequestReviewWithCommentsSubmittedEventWithOctokit } from "../messaging/queue";
+import {
+  publishGitHubEventToQueue,
+  type WebhookPRCommentCreatedEventWithOctokit,
+  type WebhookPullRequestReviewWithCommentsSubmittedEventWithOctokit,
+} from "../messaging/queue";
 import { AT_MENTION } from "../utils";
 import { codeReviewCommandSuggestion } from "../github/issue";
 import { db } from "../db/db";
@@ -44,7 +48,7 @@ ghApp.webhooks.on("issues.opened", async (event) => {
         position: 0,
         issueId: issue.id,
         branch: null,
-        isArchived: false
+        isArchived: false,
       });
       console.log(`Todo created for issue #${issue.number}`);
     } catch (error) {
@@ -154,7 +158,7 @@ ghApp.webhooks.on("pull_request.opened", async (event) => {
 ghApp.webhooks.on("installation_repositories.added", async (event) => {
   const { payload } = event;
   const { repositories_added } = payload;
-  the repos = repositories_added.map(({ full_name }) => full_name).join(",");
+  const repos = repositories_added.map(({ full_name }) => full_name).join(",");
 
   console.log(`[${repos}] Received installation repositories added event`);
 
