@@ -52,7 +52,9 @@ ghApp.webhooks.on("issues.opened", async (event) => {
       });
       console.log(`Todo created for issue #${issue.number}`);
     } catch (error) {
-      console.error(`Error creating todo for issue #${issue.number}: ${error}`);
+      console.error(
+        `Error creating todo for issue #${issue.number}: ${String(error)}`,
+      );
     }
     void publishGitHubEventToQueue(event);
   } else {
