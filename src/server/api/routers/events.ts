@@ -82,8 +82,7 @@ export type Issue = {
   title: string;
   description: string;
   createdAt: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  comments: any[];
+  comments: Comment[];
   author: string;
   assignee: string;
   status: "open" | "closed";
