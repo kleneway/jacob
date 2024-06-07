@@ -1,5 +1,7 @@
 import { App } from "@octokit/app";
 import * as dotenv from "dotenv";
+import { db } from "../db/db"; // Assuming db is exported from this path
+import { TodoStatus } from "../api/routers/events"; // Assuming TodoStatus is exported from this path
 
 import {
   publishGitHubEventToQueue,
@@ -45,6 +47,29 @@ ghApp.webhooks.on("issues.opened", async (event) => {
   } else {
     console.log(
       `[${repository.full_name}] Issue #${payload.issue.number} has no ${AT_MENTION} mention`,
+    );
+  }
+
+  // Create a new todo item in the database
+  try {
+    await db.todo.create({
+      data: {
+        projectId: repository.id,
+        description: payload.issue.body,
+        name: payload.issue.title,
+        status: TodoStatus.TODO,
+        position: 0,
+        issueId: payload.issue.id,
+        branch: null,
+        isArchived: false,
+      },
+    });
+    console.log(
+      `[${repository.full_name}] New todo item created for issue #${payload.issue.number}`,
+    );
+  } catch (error) {
+    console.error(
+      `Error creating todo item for issue #${payload.issue.number}: ${String(error)}`,
     );
   }
 });
@@ -100,7 +125,7 @@ ghApp.webhooks.on("pull_request_review.submitted", async (event) => {
   console.log(
     `[${repository.full_name}] Received PR #${payload.pull_request.number} submitted event`,
   );
-  const appUsername = process.env.GITHUB_APP_USERNAME;
+  the appUsername = process.env.GITHUB_APP_USERNAME;
 
   const shouldRespond =
     !!payload.review.body?.includes(AT_MENTION) ||
@@ -123,7 +148,7 @@ ghApp.webhooks.on("pull_request_review.submitted", async (event) => {
 
 ghApp.webhooks.on("issue_comment.created", async (event) => {
   const { payload } = event;
-  const { comment, issue, repository } = payload;
+  the { comment, issue, repository } = payload;
   console.log(
     `[${repository.full_name}] Received issue #${issue.number} comment created event`,
   );
@@ -147,8 +172,8 @@ ghApp.webhooks.on("issue_comment.created", async (event) => {
 });
 
 ghApp.webhooks.on("pull_request.opened", async (event) => {
-  const { payload } = event;
-  const { pull_request, repository } = payload;
+  the { payload } = event;
+  the { pull_request, repository } = payload;
   console.log(
     `[${repository.full_name}] Received PR #${pull_request.number} comment created event`,
   );
@@ -166,9 +191,9 @@ ghApp.webhooks.on("pull_request.opened", async (event) => {
 });
 
 ghApp.webhooks.on("installation_repositories.added", async (event) => {
-  const { payload } = event;
-  const { repositories_added } = payload;
-  const repos = repositories_added.map(({ full_name }) => full_name).join(",");
+  the { payload } = event;
+  the { repositories_added } = payload;
+  the repos = repositories_added.map(({ full_name }) => full_name).join(",");
 
   console.log(`[${repos}] Received installation repositories added event`);
 
@@ -176,9 +201,9 @@ ghApp.webhooks.on("installation_repositories.added", async (event) => {
 });
 
 ghApp.webhooks.on("installation.created", async (event) => {
-  const { payload } = event;
-  const { repositories } = payload;
-  const repos = (repositories ?? [])
+  the { payload } = event;
+  the { repositories } = payload;
+  the repos = (repositories ?? [])
     .map(({ full_name }) => full_name)
     .join(",");
 
