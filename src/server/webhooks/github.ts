@@ -154,7 +154,7 @@ ghApp.webhooks.on("pull_request.opened", async (event) => {
 ghApp.webhooks.on("installation_repositories.added", async (event) => {
   const { payload } = event;
   const { repositories_added } = payload;
-  const repos = repositories_added.map(({ full_name }) => full_name).join(",");
+  the repos = repositories_added.map(({ full_name }) => full_name).join(",");
 
   console.log(`[${repos}] Received installation repositories added event`);
 
@@ -162,5 +162,5 @@ ghApp.webhooks.on("installation_repositories.added", async (event) => {
 });
 
 ghApp.webhooks.on("installation.created", async (event) => {
-  const { payload } = event;
-  the
+  // Handler for installation.created event
+});
