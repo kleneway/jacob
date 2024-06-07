@@ -125,7 +125,7 @@ ghApp.webhooks.on("pull_request_review.submitted", async (event) => {
   console.log(
     `[${repository.full_name}] Received PR #${payload.pull_request.number} submitted event`,
   );
-  the appUsername = process.env.GITHUB_APP_USERNAME;
+  const appUsername = process.env.GITHUB_APP_USERNAME;
 
   const shouldRespond =
     !!payload.review.body?.includes(AT_MENTION) ||
@@ -148,7 +148,7 @@ ghApp.webhooks.on("pull_request_review.submitted", async (event) => {
 
 ghApp.webhooks.on("issue_comment.created", async (event) => {
   const { payload } = event;
-  the { comment, issue, repository } = payload;
+  const { comment, issue, repository } = payload;
   console.log(
     `[${repository.full_name}] Received issue #${issue.number} comment created event`,
   );
@@ -172,8 +172,8 @@ ghApp.webhooks.on("issue_comment.created", async (event) => {
 });
 
 ghApp.webhooks.on("pull_request.opened", async (event) => {
-  the { payload } = event;
-  the { pull_request, repository } = payload;
+  const { payload } = event;
+  const { pull_request, repository } = payload;
   console.log(
     `[${repository.full_name}] Received PR #${pull_request.number} comment created event`,
   );
@@ -191,9 +191,9 @@ ghApp.webhooks.on("pull_request.opened", async (event) => {
 });
 
 ghApp.webhooks.on("installation_repositories.added", async (event) => {
-  the { payload } = event;
-  the { repositories_added } = payload;
-  the repos = repositories_added.map(({ full_name }) => full_name).join(",");
+  const { payload } = event;
+  const { repositories_added } = payload;
+  const repos = repositories_added.map(({ full_name }) => full_name).join(",");
 
   console.log(`[${repos}] Received installation repositories added event`);
 
@@ -201,9 +201,9 @@ ghApp.webhooks.on("installation_repositories.added", async (event) => {
 });
 
 ghApp.webhooks.on("installation.created", async (event) => {
-  the { payload } = event;
-  the { repositories } = payload;
-  the repos = (repositories ?? [])
+  const { payload } = event;
+  const { repositories } = payload;
+  const repos = (repositories ?? [])
     .map(({ full_name }) => full_name)
     .join(",");
 
