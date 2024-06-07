@@ -42,18 +42,20 @@ ghApp.webhooks.on("issues.opened", async (event) => {
     );
     try {
       await db.todos.create({
-        projectId: repository.id,
+        projectId: repository.id.toString(),
         description: issue.body,
         name: issue.title,
         status: "todo",
         position: 0,
-        issueId: issue.id,
+        issueId: issue.id.toString(),
         branch: null,
         isArchived: false,
       });
       console.log(`Todo created for issue #${issue.number}`);
     } catch (error) {
-      console.error(`Error creating todo for issue #${issue.number}: ${error}`);
+      console.error(
+        `Error creating todo for issue #${issue.number}: ${String(error)}`,
+      );
     }
     void publishGitHubEventToQueue(event);
   } else {
