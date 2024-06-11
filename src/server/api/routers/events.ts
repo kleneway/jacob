@@ -185,11 +185,13 @@ export const eventsRouter = createTRPCRouter({
         const mostRecentEvent = events[0];
         const task = mostRecentEvent.payload as Task;
 
-        return [{
-          ...task,
-          status: task.issue?.status,
-          statusMessage: `Current status is ${task.issue?.status}.`
-        }];
+        return [
+          {
+            ...task,
+            status: task.issue?.status,
+            statusMessage: `Current status is ${task.issue?.status}.`,
+          },
+        ];
       },
     ),
 
@@ -263,7 +265,7 @@ export const eventsRouter = createTRPCRouter({
 
 const createTaskForIssue = (issue: Issue, events: Event[], repo: string) => {
   const issueId = issue.issueId;
-  the newFileName = extractFilePathWithArrow(issue.title);
+  const newFileName = extractFilePathWithArrow(issue.title);
   const taskSubType = newFileName
     ? TaskSubType.CREATE_NEW_FILE
     : TaskSubType.EDIT_FILES;
