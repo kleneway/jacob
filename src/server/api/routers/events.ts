@@ -5,7 +5,7 @@ import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 
 import { TaskStatus, TaskSubType } from "~/server/db/enums";
 import { type Language } from "~/types";
-import { getIssue, validateRepo } from "../utils";
+import { validateRepo } from "../utils";
 import { getSnapshotUrl } from "~/app/utils";
 import { extractFilePathWithArrow } from "~/server/utils";
 
@@ -67,12 +67,10 @@ export type Prompt = {
     model: string;
   };
   request: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    prompts: ReturnType<any>[];
+    prompts: any[];
   };
   response: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    prompt: ReturnType<any>;
+    prompt: any;
   };
 };
 
@@ -83,8 +81,7 @@ export type Issue = {
   title: string;
   description: string;
   createdAt: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  comments: ReturnType<any>[];
+  comments: any[];
   author: string;
   assignee: string;
   status: "open" | "closed";
@@ -270,65 +267,3 @@ export const eventsRouter = createTRPCRouter({
       return event;
     }),
 });
-
-const createTaskForIssue = (issue: Issue, events: Event[], repo: string) => {
-  const issueId = issue.issueId;
-  const newFileName = extractFilePathWithArrow(issue.title);
-  const taskSubType = newFileName
-    ? TaskSubType.CREATE_NEW_FILE
-    : TaskSubType.EDIT_FILES;
-  if (newFileName) {
-    issue.filesToCreate = [newFileName];
-  }
-
-  // const plan = getPlanForTaskSubType(taskSubType);
-
-  // Each issue should have a single pull request. Get the most recent pull request
-  const pullRequest = events.find((e) => e.type === TaskType.pull_request)
-    ?.payload as PullRequest;
-
-  // Get the most recent code event for each unique 'code.fileName' associated with the issue
-  const codeFiles = events
-    .filter((e) => e.type === TaskType.code && e.issueId === issueId)
-    .map((e) => e.payload as Code)
-    .reduce<Code[]>((acc, code) => {
-      if (!acc.some((c) => c.fileName === code.fileName)) {
-        acc.push(code);
-      }
-      return acc;
-    }, []);
-
-  // Get the commands associated with the issue, sorted from least to most recent
-  const commands = events
-    .filter((e) => e.type === TaskType.command && e.issueId === issueId)
-    .map((e) => e.payload as Command)
-    .reverse();
-
-  // Get the prompts associated with the issue
-  const prompts = events
-    .filter((e) => e.type === TaskType.prompt && e.issueId === issueId)
-    .map((e) => e.payload as Prompt);
-
-  let imageUrl = "";
-  if (issue) {
-    imageUrl = getSnapshotUrl(issue.description) ?? "";
-  }
-
-  return {
-    id: `task-${issueId}`,
-    issueId,
-    type: TaskType.task,
-    repo,
-    name: issue?.title ?? "New Task",
-    subType: taskSubType,
-    description: issue.description,
-    status: issue.status === "open" ? TaskStatus.IN_PROGRESS : TaskStatus.DONE,
-    storyPoints: 1, // TODO: Calculate story points
-    imageUrl,
-    issue,
-    pullRequest,
-    commands,
-    codeFiles,
-    prompts,
-  } as Task;
-};
