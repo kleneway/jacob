@@ -8,7 +8,12 @@ import Workspace from "./components/workspace";
 import { type Message, Role, SidebarIcon } from "~/types";
 import { TaskStatus } from "~/server/db/enums";
 
-import { type Todo, type Task } from "~/server/api/routers/events";
+import {
+  type Todo,
+  type Task,
+  type Prompt,
+  type Issue,
+} from "~/server/api/routers/events";
 import { api } from "~/trpc/react";
 import { trpcClient } from "~/trpc/client";
 import { DEVELOPERS } from "~/data/developers";
@@ -87,7 +92,7 @@ const Dashboard: React.FC<DashboardParams> = ({
             console.warn("No issueId found in task event", event);
             return;
           }
-          const newTask = {
+          const newTask: Task = {
             ...payload,
             issueId,
             plan: getPlanForTaskSubType(payload.subType),
@@ -107,14 +112,14 @@ const Dashboard: React.FC<DashboardParams> = ({
           const newTask = { ...existingTask };
           // update the task with the new payload
           if (payload.type === TaskType.issue) {
-            newTask.issue = payload;
+            newTask.issue = payload as Issue;
           }
           if (payload.type === TaskType.pull_request) {
-            newTask.pullRequest = payload;
+            newTask.pullRequest = payload as PullRequest;
           }
           if (payload.type === TaskType.code) {
             // Loop throught the code files and update the task with the new code if it exists, add it if it doesn't
-            const codeFile = payload;
+            const codeFile = payload as Code;
             const newCodeFiles = [...(newTask.codeFiles ?? [])];
             const index = newCodeFiles.findIndex(
               (c) => c.fileName === codeFile.fileName,
@@ -128,11 +133,14 @@ const Dashboard: React.FC<DashboardParams> = ({
           }
           if (payload.type === TaskType.command) {
             // add the command to the task.commands array
-            newTask.commands = [...(newTask.commands ?? []), payload];
+            newTask.commands = [
+              ...(newTask.commands ?? []),
+              payload as Command,
+            ];
           }
           if (payload.type === TaskType.prompt) {
             // add the prompt to the task.prompts array
-            newTask.prompts = [...(newTask.prompts ?? []), payload];
+            newTask.prompts = [...(newTask.prompts ?? []), payload as Prompt];
           }
 
           // update the task in the tasks array
@@ -225,7 +233,7 @@ const Dashboard: React.FC<DashboardParams> = ({
       console.error("Failed to create issue", error);
       toast.error("Failed to create issue");
     } finally {
-      chatRef?.current?.setLoading(true);
+      chatRef?.current?.setLoading(false);
     }
   };
 
@@ -274,13 +282,13 @@ const Dashboard: React.FC<DashboardParams> = ({
       const newTodos = todos?.filter((t) => t.id !== selectedTodo.id) ?? [];
       setTodos(newTodos);
       // reset the messages (send in the first task)
-      newTodos.length ? onNewTodoSelected(newTodos[0]!) : resetMessages();
+      newTodos.length ? onNewTodoSelected(newTodos[0]) : resetMessages();
       toast.success("Issue updated successfully");
     } catch (error) {
       console.error("Failed to update issue", error);
       toast.error("Failed to update issue");
     } finally {
-      chatRef?.current?.setLoading(true);
+      chatRef?.current?.setLoading(false);
     }
   };
 
