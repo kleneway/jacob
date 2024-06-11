@@ -203,11 +203,11 @@ export const eventsRouter = createTRPCRouter({
             );
 
             const status = mostRecentTaskEvent
-              ? mostRecentTaskEvent.payload.status
+              ? (mostRecentTaskEvent.payload as Task).status
               : TaskStatus.IN_PROGRESS;
 
             const statusMessage = mostRecentTaskEvent
-              ? mostRecentTaskEvent.payload.statusDescription
+              ? (mostRecentTaskEvent.payload as Task).statusDescription
               : "Task in progress";
 
             return {
