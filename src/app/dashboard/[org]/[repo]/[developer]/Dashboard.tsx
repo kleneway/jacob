@@ -282,7 +282,7 @@ const Dashboard: React.FC<DashboardParams> = ({
       const newTodos = todos?.filter((t) => t.id !== selectedTodo.id) ?? [];
       setTodos(newTodos);
       // reset the messages (send in the first task)
-      newTodos.length ? onNewTodoSelected(newTodos[0]!) : resetMessages();
+      newTodos.length ? onNewTodoSelected(newTodos[0]) : resetMessages();
       toast.success("Issue updated successfully");
     } catch (error) {
       console.error("Failed to update issue", error);
