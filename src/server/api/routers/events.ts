@@ -67,10 +67,10 @@ export type Prompt = {
     model: string;
   };
   request: {
-    prompts: ReturnType<any>[];
+    prompts: { promptType: "Assistant" | "User" | "System"; prompt: string }[];
   };
   response: {
-    prompt: ReturnType<any>;
+    prompt: string;
   };
 };
 
@@ -81,7 +81,7 @@ export type Issue = {
   title: string;
   description: string;
   createdAt: string;
-  comments: ReturnType<any>[];
+  comments: Comment[];
   author: string;
   assignee: string;
   status: "open" | "closed";
