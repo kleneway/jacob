@@ -174,32 +174,24 @@ export const eventsRouter = createTRPCRouter({
       }) => {
         await validateRepo(org, repo, accessToken);
 
-        // Fetch all events from the repo matching the `TaskType.issue`
         const events = await db.events
           .where({ repoFullName: `${org}/${repo}` })
-          .order({
-            createdAt: "DESC",
-          });
+          .where({ type: TaskType.task })
+          .orderBy("createdAt", "desc");
 
-        // Extract unique issue IDs
-        const uniqueIssueIds = [
-          ...new Set(events.map((e) => e.issueId)),
-        ].filter((issueId) => issueId);
+        if (events.length === 0) {
+          console.warn(`No task events found for repository ${org}/${repo}`);
+          return [];
+        }
 
-        // Use the unique issue IDs to create a list of tasks
-        const tasks = await Promise.all(
-          (uniqueIssueIds.filter(Boolean) as number[]).map(async (issueId) => {
-            // Each task should have a single issue. Get the most recent issue
-            let issue = events.find((e) => e.type === TaskType.issue)
-              ?.payload as Issue;
-
-            if (!issue && org && repo && issueId && accessToken) {
-              // Fetch the issue from the GitHub API using Octokit
-              issue = await getIssue(org, repo, issueId, accessToken);
-            }
-            return createTaskForIssue(issue, events, `${org}/${repo}`);
-          }),
-        );
+        const tasks = events.map((event) => {
+          const task = event.payload as Task;
+          return {
+            ...task,
+            status: task.status,
+            statusMessage: task.statusDescription,
+          };
+        });
 
         return tasks;
       },
