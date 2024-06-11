@@ -202,13 +202,16 @@ export const eventsRouter = createTRPCRouter({
               (e) => e.issueId === issueId && e.type === TaskType.task,
             );
 
-            const status = mostRecentTaskEvent
-              ? mostRecentTaskEvent.payload.status
-              : TaskStatus.IN_PROGRESS;
+            const status =
+              mostRecentTaskEvent && "status" in mostRecentTaskEvent.payload
+                ? mostRecentTaskEvent.payload.status
+                : TaskStatus.IN_PROGRESS;
 
-            const statusMessage = mostRecentTaskEvent
-              ? mostRecentTaskEvent.payload.statusMessage
-              : "Task in progress";
+            const statusMessage =
+              mostRecentTaskEvent &&
+              "statusMessage" in mostRecentTaskEvent.payload
+                ? mostRecentTaskEvent.payload.statusMessage
+                : "Task in progress";
 
             return {
               ...createTaskForIssue(issue, events, `${org}/${repo}`),
