@@ -1,5 +1,6 @@
 import { api } from "~/trpc/server";
 import Dashboard from "./Dashboard";
+import { type TaskStatus } from "~/server/db/enums";
 
 const DashboardPage = async ({
   params,
@@ -13,7 +14,15 @@ const DashboardPage = async ({
   });
 
   return (
-    <Dashboard org={org} repo={repo} developer={developer} tasks={tasks} />
+    <Dashboard
+      org={org}
+      repo={repo}
+      developer={developer}
+      tasks={tasks.map((task) => ({
+        ...task,
+        status: task.status as TaskStatus,
+      }))}
+    />
   );
 };
 
