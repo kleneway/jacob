@@ -177,7 +177,7 @@ export const eventsRouter = createTRPCRouter({
         const events = await db.events
           .where({ repoFullName: `${org}/${repo}` })
           .where({ type: TaskType.task })
-          .order({ createdAt: "desc" });
+          .orderBy("createdAt", "desc");
 
         if (events.length === 0) {
           console.warn(`No task events found for repository ${org}/${repo}`);
