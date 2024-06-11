@@ -174,34 +174,52 @@ export const eventsRouter = createTRPCRouter({
       }) => {
         await validateRepo(org, repo, accessToken);
 
-        // Fetch all events from the repo matching the `TaskType.issue`
+        // Fetch all events from the repo
         const events = await db.events
           .where({ repoFullName: `${org}/${repo}` })
           .order({
             createdAt: "DESC",
           });
 
-        // Extract unique issue IDs
-        const uniqueIssueIds = [
-          ...new Set(events.map((e) => e.issueId)),
-        ].filter((issueId) => issueId);
-
-        // Use the unique issue IDs to create a list of tasks
-        const tasks = await Promise.all(
-          (uniqueIssueIds.filter(Boolean) as number[]).map(async (issueId) => {
-            // Each task should have a single issue. Get the most recent issue
-            let issue = events.find((e) => e.type === TaskType.issue)
-              ?.payload as Issue;
-
-            if (!issue && org && repo && issueId && accessToken) {
-              // Fetch the issue from the GitHub API using Octokit
-              issue = await getIssue(org, repo, issueId, accessToken);
+        // Group events by issueId
+        const groupedEvents = events.reduce<Record<number, Event[]>>(
+          (acc, event) => {
+            if (event.issueId) {
+              if (!acc[event.issueId]) {
+                acc[event.issueId] = [];
+              }
+              acc[event.issueId].push(event);
             }
-            return createTaskForIssue(issue, events, `${org}/${repo}`);
-          }),
+            return acc;
+          },
+          {},
         );
 
-        return tasks;
+        const tasks = Object.values(groupedEvents).map((eventsForIssue) => {
+          // Find the most recent task event
+          const taskEvent = eventsForIssue.find(
+            (event) => event.type === TaskType.task,
+          );
+
+          if (!taskEvent) {
+            console.warn(
+              `No task event found for issueId ${eventsForIssue[0]?.issueId}`,
+            );
+            return null;
+          }
+
+          const issue = eventsForIssue.find((e) => e.type === TaskType.issue)
+            ?.payload as Issue;
+
+          return createTaskForIssue(
+            issue,
+            eventsForIssue,
+            `${org}/${repo}`,
+            taskEvent.payload as Task,
+          );
+        });
+
+        return tasks.filter(Boolean) as Task[];
       },
     ),
 
@@ -279,13 +297,18 @@ export const eventsRouter = createTRPCRouter({
     }),
 });
 
-const createTaskForIssue = (issue: Issue, events: Event[], repo: string) => {
-  const issueId = issue.issueId;
-  const newFileName = extractFilePathWithArrow(issue.title);
+const createTaskForIssue = (
+  issue: Issue | undefined,
+  events: Event[],
+  repo: string,
+  taskEvent: Task,
+) => {
+  const issueId = issue?.issueId;
+  const newFileName = issue && extractFilePathWithArrow(issue.title);
   const taskSubType = newFileName
     ? TaskSubType.CREATE_NEW_FILE
     : TaskSubType.EDIT_FILES;
-  if (newFileName) {
+  if (newFileName && issue) {
     issue.filesToCreate = [newFileName];
   }
 
@@ -323,14 +346,13 @@ const createTaskForIssue = (issue: Issue, events: Event[], repo: string) => {
   }
 
   return {
+    ...taskEvent,
     id: `task-${issueId}`,
     issueId,
-    type: TaskType.task,
     repo,
     name: issue?.title ?? "New Task",
     subType: taskSubType,
-    description: issue.description,
-    status: issue.status === "open" ? TaskStatus.IN_PROGRESS : TaskStatus.DONE,
+    description: issue?.description ?? "",
     storyPoints: 1, // TODO: Calculate story points
     imageUrl,
     issue,
