@@ -174,32 +174,43 @@ export const eventsRouter = createTRPCRouter({
       }) => {
         await validateRepo(org, repo, accessToken);
 
-        // Fetch all events from the repo matching the `TaskType.issue`
+        // Fetch all events from the repo
         const events = await db.events
           .where({ repoFullName: `${org}/${repo}` })
           .order({
             createdAt: "DESC",
           });
 
-        // Extract unique issue IDs
-        const uniqueIssueIds = [
-          ...new Set(events.map((e) => e.issueId)),
-        ].filter((issueId) => issueId);
-
-        // Use the unique issue IDs to create a list of tasks
-        const tasks = await Promise.all(
-          (uniqueIssueIds.filter(Boolean) as number[]).map(async (issueId) => {
-            // Each task should have a single issue. Get the most recent issue
-            let issue = events.find((e) => e.type === TaskType.issue)
-              ?.payload as Issue;
-
-            if (!issue && org && repo && issueId && accessToken) {
-              // Fetch the issue from the GitHub API using Octokit
-              issue = await getIssue(org, repo, issueId, accessToken);
+        // Group events by issueId
+        const groupedEvents = events.reduce(
+          (acc, event) => {
+            if (event.issueId) {
+              if (!acc[event.issueId]) {
+                acc[event.issueId] = [];
+              }
+              acc[event.issueId].push(event);
             }
-            return createTaskForIssue(issue, events, `${org}/${repo}`);
-          }),
+            return acc;
+          },
+          {} as Record<number, Event[]>,
         );
+
+        const tasks: Task[] = [];
+        for (const issueId in groupedEvents) {
+          // Get the most recent task event
+          const taskEvent = groupedEvents[issueId].find(
+            (event) => event.type === TaskType.task,
+          );
+
+          if (taskEvent) {
+            const task = taskEvent.payload as Task;
+            tasks.push(task);
+          } else {
+            console.warn(
+              `No task event found for issueId ${issueId} in repo ${org}/${repo}`,
+            );
+          }
+        }
 
         return tasks;
       },
