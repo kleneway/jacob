@@ -93,8 +93,8 @@ export async function editFiles(params: EditFilesParams) {
     const { code } = concatenateFiles(
       rootPath,
       undefined,
-      step.filesToUpdate,
-      step.filesToCreate,
+      step.filesToUpdate ?? [],
+      step.filesToCreate ?? [],
     );
     console.log(`[${repository.full_name}] Processing step:\n\n`, code);
 

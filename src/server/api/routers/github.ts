@@ -55,7 +55,7 @@ export const githubRouter = createTRPCRouter({
           });
         }
         if (extractedIssue.stepsToAddressIssue) {
-          body += `\n\nSteps to Address Issue: ${extractedIssue.stepsToAddressIssue}`;
+          body += `\n\nSteps to Address Issue: ${extractedIssue.stepsToAddressIssue.map((step) => step.description).join(", ")}`;
         }
         if (extractedIssue.filesToCreate?.length) {
           body += `\n\nFiles to Create: ${extractedIssue.filesToCreate.join(
