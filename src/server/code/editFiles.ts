@@ -93,7 +93,7 @@ export async function editFiles(params: EditFilesParams) {
       rootPath,
       undefined,
       filesToUpdate,
-      extractedIssue.filesToCreate,
+      filesToCreate,
     );
     console.log(`[${repository.full_name}] Concatenated code:\n\n`, code);
 
