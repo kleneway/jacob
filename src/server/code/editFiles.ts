@@ -45,9 +45,7 @@ export async function editFiles(params: EditFilesParams) {
     ...baseEventData
   } = params;
   const snapshotUrl = getSnapshotUrl(issue.body);
-  // Fallback to a source file list if we don't have a source map (e.g. JS projects)
   const sourceMapOrFileList = sourceMap || (await traverseCodebase(rootPath));
-  // When we start processing PRs, need to handle appending additionalComments
   const issueBody = issue.body ? `\n${issue.body}` : "";
   const issueText = `${issue.title}${issueBody}`;
 
@@ -76,74 +74,13 @@ export async function editFiles(params: EditFilesParams) {
     baseEventData,
   )) as ExtractedIssueInfo;
 
-  // TODO: handle previousAssessments
-  const filesToUpdate = extractedIssue.filesToUpdate ?? [];
-  const filesToCreate = extractedIssue.filesToCreate ?? [];
-
-  console.log(`[${repository.full_name}] Files to update:`, filesToUpdate);
-  console.log(`[${repository.full_name}] Files to create:`, filesToCreate);
-  if (!filesToUpdate?.length && !filesToCreate?.length) {
+  if (!extractedIssue.stepsToAddressIssue?.length) {
     console.log(
-      "\n\n\n\n^^^^^^\n\n\n\nERROR: No files to update or create\n\n\n\n",
+      "\n\n\n\n^^^^^^\n\n\n\nERROR: No steps to address issue\n\n\n\n",
     );
-    throw new Error("No files to update or create");
+    throw new Error("No steps to address issue");
   }
-  const { code } = concatenateFiles(
-    rootPath,
-    undefined,
-    filesToUpdate,
-    extractedIssue.filesToCreate,
-  );
-  console.log(`[${repository.full_name}] Concatenated code:\n\n`, code);
 
-  const types = getTypes(rootPath, repoSettings);
-  const packages = Object.keys(repoSettings?.packageDependencies ?? {}).join(
-    "\n",
-  );
-  const styles = await getStyles(rootPath, repoSettings);
-  let images = await getImages(rootPath, repoSettings);
-  images = await saveImages(images, issue?.body, rootPath, repoSettings);
-
-  // TODO: populate tailwind colors and leverage in system prompt
-
-  const codeTemplateParams = {
-    sourceMap: sourceMapOrFileList,
-    types,
-    packages,
-    styles,
-    images,
-    code,
-    issueBody: issueText,
-    plan: extractedIssue.stepsToAddressIssue ?? "",
-    snapshotUrl: snapshotUrl ?? "",
-  };
-
-  const codeSystemPrompt = constructNewOrEditSystemPrompt(
-    "code_edit_files",
-    codeTemplateParams,
-    repoSettings,
-  );
-  const codeUserPrompt = parseTemplate(
-    "dev",
-    "code_edit_files",
-    "user",
-    codeTemplateParams,
-  );
-
-  // Call sendGptRequest with the issue and concatenated code file
-  const updatedCode = (await sendGptVisionRequest(
-    codeUserPrompt,
-    codeSystemPrompt,
-    snapshotUrl,
-    0.2,
-    baseEventData,
-  ))!;
-
-  if (updatedCode.length < 10 || !updatedCode.includes("__FILEPATH__")) {
-    console.log(`[${repository.full_name}] code`, code);
-    console.log(`[${repository.full_name}] No code generated. Exiting...`);
-    throw new Error("No code generated");
-  }
   const newBranch = generateJacobBranchName(issue.number);
 
   await setNewBranch({
@@ -152,10 +89,68 @@ export async function editFiles(params: EditFilesParams) {
     branchName: newBranch,
   });
 
-  const files = reconstructFiles(updatedCode, rootPath);
-  await Promise.all(
-    files.map((file) => emitCodeEvent({ ...baseEventData, ...file })),
-  );
+  for (const step of extractedIssue.stepsToAddressIssue) {
+    const { code } = concatenateFiles(
+      rootPath,
+      undefined,
+      step.filesToUpdate ?? [],
+      step.filesToCreate ?? [],
+    );
+    console.log(`[${repository.full_name}] Processing step:\n\n`, code);
+
+    const types = getTypes(rootPath, repoSettings);
+    const packages = Object.keys(repoSettings?.packageDependencies ?? {}).join(
+      "\n",
+    );
+    const styles = await getStyles(rootPath, repoSettings);
+    let images = await getImages(rootPath, repoSettings);
+    images = await saveImages(images, issue?.body, rootPath, repoSettings);
+
+    const codeTemplateParams = {
+      sourceMap: sourceMapOrFileList,
+      types,
+      packages,
+      styles,
+      images,
+      code,
+      issueBody: issueText,
+      plan: step.description ?? "",
+      snapshotUrl: snapshotUrl ?? "",
+    };
+
+    const codeSystemPrompt = constructNewOrEditSystemPrompt(
+      "code_edit_files",
+      codeTemplateParams,
+      repoSettings,
+    );
+    const codeUserPrompt = parseTemplate(
+      "dev",
+      "code_edit_files",
+      "user",
+      codeTemplateParams,
+    );
+
+    const updatedCode = (await sendGptVisionRequest(
+      codeUserPrompt,
+      codeSystemPrompt,
+      snapshotUrl,
+      0.2,
+      baseEventData,
+    ))!;
+
+    if (updatedCode.length < 10 || !updatedCode.includes("__FILEPATH__")) {
+      console.log(`[${repository.full_name}] code`, code);
+      console.log(
+        `[${repository.full_name}] No code generated for step. Continuing to next step...`,
+      );
+      continue;
+    }
+
+    const files = reconstructFiles(updatedCode, rootPath);
+    await Promise.all(
+      files.map((file) => emitCodeEvent({ ...baseEventData, ...file })),
+    );
+  }
 
   await checkAndCommit({
     ...baseEventData,
@@ -168,7 +163,9 @@ export async function editFiles(params: EditFilesParams) {
     issue,
     newPrTitle: `JACoB PR for Issue ${issue.title}`,
     newPrBody: `## Summary:\n\n${issue.body}\n\n## Plan:\n\n${
-      extractedIssue.stepsToAddressIssue ?? ""
+      extractedIssue.stepsToAddressIssue
+        .map((step) => step.description)
+        .join("\n\n") ?? ""
     }`,
     newPrReviewers: issue.assignees.map((assignee) => assignee.login),
   });
