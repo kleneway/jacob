@@ -80,7 +80,7 @@ export const ChatInput: FC<Props> = ({
 
     setUploading(true);
     // Example upload logic, replace with actual upload code
-    Promise.all(
+    void Promise.all(
       validFiles.map(async (file) => {
         // Upload logic here
         const formData = new FormData();
@@ -96,15 +96,20 @@ export const ChatInput: FC<Props> = ({
             // Handle successful upload, e.g., append image URL to chat content or state
             toast.success(`Image uploaded: ${data.url}`);
           } else {
-            throw new Error(data.message);
+            throw new Error(data.message || "Upload failed");
           }
-        } catch (error) {
-          toast.error(`Upload failed: ${error}`);
+        } catch (error: any) {
+          toast.error(`Upload failed: ${error.message}`);
         }
       }),
-    ).then(() => {
-      setUploading(false);
-    });
+    )
+      .then(() => {
+        setUploading(false);
+      })
+      .catch((error: any) => {
+        toast.error(`Upload failed: ${error.message}`);
+        setUploading(false);
+      });
   };
 
   useEffect(() => {
