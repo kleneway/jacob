@@ -69,6 +69,9 @@ export const renderers: Partial<Components | any> = {
       );
     }
   },
+  image: ({ src, alt }: { src: string; alt?: string }) => {
+    return <img src={src} alt={alt} className="h-auto max-w-full rounded-lg" />;
+  },
 };
 
 export const ChatMessage: FC<Props> = ({
