@@ -1,6 +1,5 @@
-import { faArrowUp } from "@fortawesome/free-solid-svg-icons";
+import { faArrowUp, faPaperclip } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-
 import {
   type FC,
   type KeyboardEvent,
@@ -23,7 +22,8 @@ export const ChatInput: FC<Props> = ({
   isResponding = false,
   loading = false,
 }) => {
-  const [content, setContent] = useState<string>();
+  const [content, setContent] = useState<string>("");
+  const [uploading, setUploading] = useState<boolean>(false);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -47,12 +47,64 @@ export const ChatInput: FC<Props> = ({
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    // if it's responding, don't allow the user to send a message
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      if (isResponding || loading) return;
+      if (isResponding || loading || uploading) return;
       handleSend();
     }
+  };
+
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const files = event.target.files;
+    if (!files) return;
+
+    const validFiles = Array.from(files).filter(
+      (file) => file.type === "image/jpeg" || file.type === "image/png",
+    );
+    const invalidFiles = Array.from(files).length !== validFiles.length;
+
+    if (invalidFiles) {
+      toast.error("Only JPEG and PNG images are allowed");
+      return;
+    }
+
+    const oversizedFiles = validFiles.filter(
+      (file) => file.size > 20 * 1024 * 1024,
+    );
+    if (oversizedFiles.length > 0) {
+      toast.error("Images must be under 20MB");
+      return;
+    }
+
+    setUploading(true);
+    // Example upload logic, replace with actual upload code
+    Promise.all(
+      validFiles.map(async (file) => {
+        // Upload logic here
+        const formData = new FormData();
+        formData.append("image", file);
+        // Assuming API endpoint '/api/image/upload' accepts form data
+        try {
+          const response = await fetch("/api/image/upload", {
+            method: "POST",
+            body: formData,
+          });
+          const data = await response.json();
+          if (data.success) {
+            // Handle successful upload, e.g., append image URL to chat content or state
+            toast.success(`Image uploaded: ${data.url}`);
+          } else {
+            throw new Error(data.message);
+          }
+        } catch (error) {
+          toast.error(`Upload failed: ${error}`);
+        }
+      }),
+    ).then(() => {
+      setUploading(false);
+    });
   };
 
   useEffect(() => {
@@ -65,7 +117,7 @@ export const ChatInput: FC<Props> = ({
   return (
     <div
       className={`flex w-full max-w-4xl flex-col items-start rounded-lg border border-gray-600 p-4 backdrop-blur-md ${
-        isResponding || loading ? "opacity-50" : ""
+        isResponding || loading || uploading ? "opacity-50" : ""
       }`}
     >
       <textarea
@@ -80,11 +132,22 @@ export const ChatInput: FC<Props> = ({
         <p className="mt-2 text-base text-white text-opacity-40">
           {content?.length ?? 0}/3000
         </p>
-        <div className="mt-2 flex w-full items-center justify-end">
+        <div className="mt-2 flex w-full items-center justify-end space-x-2">
+          <input
+            type="file"
+            multiple
+            accept="image/jpeg,image/png"
+            onChange={handleFileUpload}
+            id="image-upload"
+            className="hidden"
+          />
+          <label htmlFor="image-upload" className="cursor-pointer">
+            <FontAwesomeIcon icon={faPaperclip} className="text-white" />
+          </label>
           <button
             onClick={handleSend}
             className="h-8 w-8 rounded-full border border-gray-400 bg-white text-black"
-            disabled={isResponding}
+            disabled={isResponding || uploading}
             data-tooltip-id="tooltip_chatinput"
             data-tooltip-content="Send message"
           >
