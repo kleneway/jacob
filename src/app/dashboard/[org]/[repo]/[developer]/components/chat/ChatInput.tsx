@@ -17,6 +17,12 @@ interface Props {
   loading?: boolean;
 }
 
+interface UploadResponse {
+  success: boolean;
+  url?: string;
+  message?: string;
+}
+
 export const ChatInput: FC<Props> = ({
   onSend,
   isResponding = false,
@@ -91,23 +97,27 @@ export const ChatInput: FC<Props> = ({
             method: "POST",
             body: formData,
           });
-          const data = await response.json();
+          const data: UploadResponse = await response.json();
           if (data.success) {
             // Handle successful upload, e.g., append image URL to chat content or state
             toast.success(`Image uploaded: ${data.url}`);
           } else {
             throw new Error(data.message || "Upload failed");
           }
-        } catch (error: any) {
-          toast.error(`Upload failed: ${error.message}`);
+        } catch (error) {
+          if (error instanceof Error) {
+            toast.error(`Upload failed: ${error.message}`);
+          }
         }
       }),
     )
       .then(() => {
         setUploading(false);
       })
-      .catch((error: any) => {
-        toast.error(`Upload failed: ${error.message}`);
+      .catch((error) => {
+        if (error instanceof Error) {
+          toast.error(`Upload failed: ${error.message}`);
+        }
         setUploading(false);
       });
   };
