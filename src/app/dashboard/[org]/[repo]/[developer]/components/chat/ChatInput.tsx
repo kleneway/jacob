@@ -100,9 +100,9 @@ export const ChatInput: FC<Props> = ({
           const data: UploadResponse = await response.json();
           if (data.success) {
             // Handle successful upload, e.g., append image URL to chat content or state
-            toast.success(`Image uploaded: ${data.url}`);
+            toast.success(`Image uploaded: ${data.url ?? ""}`);
           } else {
-            throw new Error(data.message || "Upload failed");
+            throw new Error(data.message ?? "Upload failed");
           }
         } catch (error) {
           if (error instanceof Error) {
