@@ -103,7 +103,11 @@ export const ChatInput: FC<Props> = ({
         onSend({ role: Role.USER, content: url });
       });
     } catch (error) {
-      toast.error(error.message || "Image upload failed");
+      if (error instanceof Error) {
+        toast.error(error.message || "Image upload failed");
+      } else {
+        toast.error("An unexpected error occurred during image upload.");
+      }
     } finally {
       setIsUploading(false);
     }
