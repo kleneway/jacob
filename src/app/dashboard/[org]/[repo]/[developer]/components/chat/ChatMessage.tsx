@@ -112,6 +112,14 @@ export const ChatMessage: FC<Props> = ({
           >
             {content}
           </Markdown>
+          {message.imageUrls?.map((imageUrl, index) => (
+            <img
+              key={index}
+              src={imageUrl}
+              alt={`Uploaded Image ${index}`}
+              className="mt-2 h-auto max-w-xs rounded-md"
+            />
+          ))}
         </div>
       )}
       {message.role === Role.ASSISTANT &&
