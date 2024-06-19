@@ -71,6 +71,27 @@ export const renderers: Partial<Components | any> = {
   },
 };
 
+const renderMessageContent = (message: Message) => {
+  if (message.content.startsWith("http")) {
+    return (
+      <img
+        src={message.content}
+        alt="Uploaded"
+        className="chat-image max-w-full rounded-md"
+      />
+    );
+  }
+  return (
+    <Markdown
+      remarkPlugins={[gfm]}
+      className={`px-1 py-1`}
+      components={renderers}
+    >
+      {message.content}
+    </Markdown>
+  );
+};
+
 export const ChatMessage: FC<Props> = ({
   message,
   messageHistory,
@@ -102,23 +123,23 @@ export const ChatMessage: FC<Props> = ({
     >
       {content?.length > 0 && (
         <div
-          className={`markdown-chat flex flex-col text-left font-figtree ${message.role === Role.ASSISTANT ? "max-w-[100%]" : "max-w-[95%] bg-gradient-to-l from-blueGray-700/50 to-blueGray-800/50"} hide-scrollbar rounded-md px-2  shadow-md`}
+          className={`markdown-chat flex flex-col text-left font-figtree ${
+            message.role === Role.ASSISTANT
+              ? "max-w-[100%]"
+              : "max-w-[95%] bg-gradient-to-l from-blueGray-700/50 to-blueGray-800/50"
+          } hide-scrollbar rounded-md px-2  shadow-md`}
           style={{ overflowWrap: "anywhere" }}
         >
-          <Markdown
-            remarkPlugins={[gfm]}
-            className={`px-1 py-1`}
-            components={renderers}
-          >
-            {content}
-          </Markdown>
+          {renderMessageContent(message)}
         </div>
       )}
       {message.role === Role.ASSISTANT &&
         message.content.includes(SpecialPhrases.CREATE_TASK) && (
           <div className="mt-2 flex justify-center self-center">
             <div
-              className={`inline-flex  items-center justify-center gap-2 rounded border border-gray-400 bg-white px-6 py-2 ${loading ? "cursor-wait opacity-50 " : "cursor-pointer "}`}
+              className={`inline-flex  items-center justify-center gap-2 rounded border border-gray-400 bg-white px-6 py-2 ${
+                loading ? "cursor-wait opacity-50 " : "cursor-pointer "
+              }`}
               onClick={() => onCreateNewTask(messageHistory)}
             >
               <div className="text-center text-xs font-medium text-black">
@@ -135,7 +156,9 @@ export const ChatMessage: FC<Props> = ({
         message.content.includes(SpecialPhrases.UPDATE_TASK) && (
           <div className="mt-2 flex justify-center self-center">
             <div
-              className={`inline-flex items-center justify-center gap-2 rounded border border-gray-400 bg-white px-6 py-2 ${loading ? "cursor-wait opacity-50 " : "cursor-pointer "}`}
+              className={`inline-flex items-center justify-center gap-2 rounded border border-gray-400 bg-white px-6 py-2 ${
+                loading ? "cursor-wait opacity-50 " : "cursor-pointer "
+              }`}
               onClick={() => onUpdateIssue(messageHistory)}
             >
               <div className="text-center text-xs font-medium text-black">
