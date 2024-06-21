@@ -1,105 +1,116 @@
-import { faArrowUp } from "@fortawesome/free-solid-svg-icons";
+import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-
-import {
-  type FC,
-  type KeyboardEvent,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { faArrowUp, faUpload } from "@fortawesome/free-solid-svg-icons";
 import { toast } from "react-toastify";
-import { Tooltip } from "react-tooltip";
+import "react-toastify/dist/ReactToastify.css";
 import { type Message, Role } from "~/types";
 
 interface Props {
   onSend: (message: Message) => void;
-  isResponding?: boolean;
-  loading?: boolean;
+  isResponding: boolean | undefined;
+  loading: boolean | undefined;
 }
 
-export const ChatInput: FC<Props> = ({
-  onSend,
-  isResponding = false,
-  loading = false,
-}) => {
-  const [content, setContent] = useState<string>();
-
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const value = e.target.value;
-    if (value.length > 3000) {
-      toast.error("Message limit is 3000 characters");
-      return;
-    }
-
-    setContent(value);
-  };
+const ChatInput: React.FC<Props> = ({ onSend, isResponding, loading }) => {
+  const [input, setInput] = useState("");
+  const [imageLoading, setImageLoading] = useState(false);
 
   const handleSend = () => {
-    if (!content) {
-      alert("Please enter a message");
-      return;
-    }
-    onSend({ role: Role.USER, content });
-    setContent("");
+    if (input.trim() === "") return;
+    onSend({ role: Role.USER, content: input });
+    setInput("");
   };
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    // if it's responding, don't allow the user to send a message
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      if (isResponding || loading) return;
-      handleSend();
+  const handleImageUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const files = event.target.files;
+    if (!files) return;
+
+    const validImages = Array.from(files).filter((file) => {
+      if (!["image/jpeg", "image/png"].includes(file.type)) {
+        toast.error("Only JPEG and PNG images are allowed.");
+        return false;
+      }
+      if (file.size > 20 * 1024 * 1024) {
+        toast.error("Image size must be under 20MB.");
+        return false;
+      }
+      return true;
+    });
+
+    if (validImages.length === 0) return;
+
+    setImageLoading(true);
+    try {
+      const uploadPromises = validImages.map(async (file) => {
+        const formData = new FormData();
+        formData.append("image", file);
+        formData.append("imageType", file.type);
+
+        const response = await fetch("/api/image/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        const data = await response.json();
+        if (!data.success) {
+          throw new Error(data.message || "Image upload failed");
+        }
+
+        return data.url;
+      });
+
+      const imageUrls = await Promise.all(uploadPromises);
+      imageUrls.forEach((url) => {
+        onSend({ role: Role.USER, content: url });
+      });
+      toast.success("Images uploaded successfully.");
+    } catch (error) {
+      toast.error(error.message || "Image upload failed.");
+    } finally {
+      setImageLoading(false);
     }
   };
-
-  useEffect(() => {
-    if (textareaRef?.current) {
-      textareaRef.current.style.height = "inherit";
-      textareaRef.current.style.height = `${textareaRef.current?.scrollHeight}px`;
-    }
-  }, [content]);
 
   return (
-    <div
-      className={`flex w-full max-w-4xl flex-col items-start rounded-lg border border-gray-600 p-4 backdrop-blur-md ${
-        isResponding || loading ? "opacity-50" : ""
-      }`}
-    >
-      <textarea
-        ref={textareaRef}
-        className="w-full bg-transparent text-sm text-white text-opacity-80 placeholder-gray-400 outline-none"
-        placeholder="Send a reply.."
-        value={content}
-        onChange={handleChange}
-        onKeyDown={handleKeyDown}
-      />
-      <div className="items-between flex w-full flex-row">
-        <p className="mt-2 text-base text-white text-opacity-40">
-          {content?.length ?? 0}/3000
-        </p>
-        <div className="mt-2 flex w-full items-center justify-end">
-          <button
-            onClick={handleSend}
-            className="h-8 w-8 rounded-full border border-gray-400 bg-white text-black"
-            disabled={isResponding}
-            data-tooltip-id="tooltip_chatinput"
-            data-tooltip-content="Send message"
-          >
-            <FontAwesomeIcon icon={faArrowUp} />
-          </button>
-        </div>
+    <div className="flex w-full max-w-4xl flex-col items-start rounded-lg border border-gray-600 p-4 backdrop-blur-md">
+      <div className="flex w-full items-center space-x-2">
+        <button
+          className={`flex items-center justify-center rounded bg-blue-500 p-2 text-white transition ${
+            imageLoading ? "cursor-wait opacity-50" : ""
+          }`}
+          disabled={imageLoading}
+        >
+          <FontAwesomeIcon icon={faUpload} />
+          <input
+            type="file"
+            accept="image/jpeg,image/png"
+            multiple
+            className="hidden"
+            onChange={handleImageUpload}
+          />
+        </button>
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          className="flex-1 rounded border border-gray-300 p-2"
+          placeholder="Type your message..."
+          disabled={loading || isResponding}
+        />
+        <button
+          onClick={handleSend}
+          className={`flex items-center justify-center rounded bg-blue-500 p-2 text-white transition ${
+            loading ? "cursor-wait opacity-50" : ""
+          }`}
+          disabled={loading}
+        >
+          <FontAwesomeIcon icon={faArrowUp} />
+        </button>
       </div>
-      <Tooltip
-        id="tooltip_chatinput"
-        style={{
-          backgroundColor: "#353535",
-          color: "#EDEDED",
-          marginTop: -2,
-        }}
-      />
     </div>
   );
 };
+
+export default ChatInput;
