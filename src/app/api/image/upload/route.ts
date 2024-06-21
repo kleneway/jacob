@@ -45,21 +45,26 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    let imageBuffer = Buffer.from(image, "base64");
-    if (shouldResize) {
-      imageBuffer = await resizeImageForGptVision(
-        imageBuffer,
-        verifiedImageType,
-      );
-    }
-    const imagePath = await uploadToS3(
-      imageBuffer,
-      verifiedImageType,
-      bucketName,
-      imageName,
+    const imageUrls = await Promise.all(
+      image.split(",").map(async (img) => {
+        let imageBuffer = Buffer.from(img, "base64");
+        if (shouldResize) {
+          imageBuffer = await resizeImageForGptVision(
+            imageBuffer,
+            verifiedImageType,
+          );
+        }
+        const imagePath = await uploadToS3(
+          imageBuffer,
+          verifiedImageType,
+          bucketName,
+          imageName,
+        );
+        return await getSignedUrl(imagePath, bucketName);
+      }),
     );
-    const url = await getSignedUrl(imagePath, bucketName);
-    return NextResponse.json({ success: true, url });
+
+    return NextResponse.json({ success: true, urls: imageUrls });
   } catch (error) {
     console.log("Error uploading image", error);
     return NextResponse.json(
