@@ -1,7 +1,7 @@
 import Jimp from "jimp";
 import { getSignedUrl as s3getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { Upload } from "@aws-sdk/lib-storage";
-import { GetObjectCommand, S3 } from "@aws-sdk/client-s3";
+import { GetObjectCommand, S3, PutObjectCommand } from "@aws-sdk/client-s3";
 import fetch from "node-fetch";
 import { promises as fsPromises } from "fs";
 import path from "path";
@@ -56,6 +56,48 @@ export const getSignedUrl = (
   });
 };
 
+export const validateImage = (
+  imageBuffer: Buffer,
+  imageType: string
+): { valid: boolean; error?: string } => {
+  // Check if the image type is supported
+  if (imageType !== IMAGE_TYPE.JPEG && imageType !== IMAGE_TYPE.PNG) {
+    return { valid: false, error: "Unsupported image type" };
+  }
+
+  // Check if the image size is within limits (e.g., 10MB)
+  const maxSizeInBytes = 10 * 1024 * 1024; // 10MB
+  if (imageBuffer.length > maxSizeInBytes) {
+    return { valid: false, error: "Image size exceeds the limit of 10MB" };
+  }
+
+  // You can add more validation checks here if needed
+  // For example, you could check the image dimensions using a library like sharp
+
+  return { valid: true };
+};
+
+export const uploadImageToS3 = async (
+  imageBuffer: Buffer,
+  imageType: string,
+  fileName: string
+): Promise<string> => {
+  const validation = validateImage(imageBuffer, imageType);
+  if (!validation.valid) {
+    throw new Error(validation.error);
+  }
+
+  const params = {
+    Bucket: process.env.AWS_S3_BUCKET_NAME,
+    Key: fileName,
+    Body: imageBuffer,
+    ContentType: imageType,
+  };
+
+  await s3.send(new PutObjectCommand(params));
+  return `https://${process.env.AWS_S3_BUCKET_NAME}.s3.amazonaws.com/${fileName}`;
+};
+
 // Resize the image to optimize them for cost and performance as per OpenAI's vision API requirements (https://platform.openai.com/docs/guides/vision)
 // Images are first scaled to fit within a 2048 x 2048 square, maintaining their aspect ratio.
 // Then, they are scaled such that the shortest side of the image is 768px long, while the longest side must be less than 2000px.
@@ -97,10 +139,11 @@ export const resizeImageForGptVision = async (
       }
     }
 
-    return await imageJimp.getBufferAsync(jimpImageType);
+    const resizedBuffer = await imageJimp.getBufferAsync(jimpImageType);
+    return resizedBuffer;
   } catch (error) {
-    console.log("error resizing image", error);
-    return imageBuffer;
+    console.error("Error resizing image:", error);
+    throw new Error("Failed to resize image");
   }
 };
 
@@ -165,3 +208,4 @@ export const saveImages = async (
   }
   return existingImages;
 };
+211|
