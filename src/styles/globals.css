@@ -294,3 +294,25 @@ h1 {
 }
 
 @tailwind utilities;
+
+@layer components {
+  .image-upload-button {
+    @apply flex h-8 w-8 items-center justify-center rounded-full border border-gray-400 bg-white text-black transition-colors hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .chat-image-container {
+    @apply mt-2 flex flex-wrap gap-2;
+  }
+
+  .chat-image {
+    @apply max-h-40 max-w-full rounded-md object-cover;
+  }
+}
+
+@layer utilities {
+  @media (max-width: 640px) {
+    .chat-image {
+      @apply max-h-32;
+    }
+  }
+}
