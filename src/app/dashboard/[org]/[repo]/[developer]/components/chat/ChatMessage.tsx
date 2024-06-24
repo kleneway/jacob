@@ -11,6 +11,7 @@ import { toast } from "react-toastify";
 interface Props {
   message: Message;
   messageHistory: Message[];
+  imageUrls?: string[];
   onCreateNewTask: (messages: Message[]) => void;
   onUpdateIssue: (messages: Message[]) => void;
   loading?: boolean;
@@ -74,6 +75,7 @@ export const renderers: Partial<Components | any> = {
 export const ChatMessage: FC<Props> = ({
   message,
   messageHistory,
+  imageUrls = [],
   onCreateNewTask,
   onUpdateIssue,
   loading = false,
@@ -112,6 +114,13 @@ export const ChatMessage: FC<Props> = ({
           >
             {content}
           </Markdown>
+          {imageUrls.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {imageUrls.map((url, index) => (
+                <img key={index} src={url} alt={`Uploaded image ${index + 1}`} className="max-h-40 max-w-full rounded-md object-cover" />
+              ))}
+            </div>
+          )}
         </div>
       )}
       {message.role === Role.ASSISTANT &&
@@ -150,3 +159,4 @@ export const ChatMessage: FC<Props> = ({
     </div>
   );
 };
+162|
