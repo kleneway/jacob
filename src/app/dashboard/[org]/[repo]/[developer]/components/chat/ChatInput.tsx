@@ -9,8 +9,8 @@ import {
   useState,
 } from "react";
 import { toast } from "react-toastify";
-import { Tooltip } from "react-tooltip";
-import { type Message, type Role } from "~/types";
+import { Message, Role } from "@/types";
+import { MAX_IMAGE_SIZE, MAX_IMAGES, ALLOWED_IMAGE_TYPES } from "@/constants";
 
 interface Props {
   onSend: (message: Message) => void;
@@ -43,47 +43,73 @@ export const ChatInput: FC<Props> = ({
     const files = e.target.files;
     if (!files) return;
 
-    const validFiles = Array.from(files).filter(file => {
-      if (file.size > 20 * 1024 * 1024) {
-        toast.error(`${file.name} exceeds 20MB limit`);
+    if (files.length > MAX_IMAGES) {
+      toast.error(`You can only upload up to ${MAX_IMAGES} images at a time.`);
+      return;
+    }
+
+    const validFiles = Array.from(files).filter((file) => {
+      if (file.size > MAX_IMAGE_SIZE) {
+        toast.error(`${file.name} is too large. Max size is ${MAX_IMAGE_SIZE / (1024 * 1024)}MB.`);
         return false;
       }
-      if (!['image/jpeg', 'image/png'].includes(file.type)) {
-        toast.error(`${file.name} is not a valid image type`);
+      if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+        toast.error(`${file.name} is not a valid image type. Only ${ALLOWED_IMAGE_TYPES.join(", ")} are allowed.`);
         return false;
       }
       return true;
     });
 
-    for (const file of validFiles) {
-      try {
-        const base64 = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result as string);
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
+    const uploadPromises = validFiles.map((file) => {
+      return new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = async () => {
+          const base64 = reader.result as string;
+          try {
+            const response = await fetch("/api/image/upload", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ image: base64 }),
+            });
+            const data = await response.json();
+            if (response.ok) {
+              resolve(data.url);
+            } else {
+              reject(new Error(data.message || "Failed to upload image"));
+            }
+          } catch (error) {
+            reject(error);
+          }
+        };
+        reader.onerror = () => reject(new Error("Failed to read file"));
+        reader.readAsDataURL(file);
+      });
+    });
 
-        const response = await fetch('/api/image/upload', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ image: base64, imageType: file.type }),
-        });
-        const { url } = await response.json();
-        setImages(prev => [...prev, url]);
-        toast.success(`${file.name} uploaded successfully`);
-      } catch (error) {
-        toast.error(`Failed to upload ${file.name}`);
+    try {
+      const uploadedUrls = await Promise.all(uploadPromises);
+      setImages((prev) => [...prev, ...uploadedUrls]);
+      toast.success(`${uploadedUrls.length} image(s) uploaded successfully`);
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(`Upload failed: ${error.message}`);
+      } else {
+        toast.error("An unknown error occurred during upload");
       }
     }
   };
 
   const handleSend = () => {
     if (!content) {
-      alert("Please enter a message");
+      toast.error("Please enter a message");
       return;
     }
-    onSend({ role: Role.USER, content, images });
+    const message = {
+      role: Role.USER,
+      content: content,
+      images,
+    };
+    onSend(message);
     setContent("");
     setImages([]);
   };
@@ -142,15 +168,15 @@ export const ChatInput: FC<Props> = ({
             type="file"
             ref={fileInputRef}
             onChange={handleFileChange}
-            accept="image/png,image/jpeg"
+            accept="image/*"
             multiple
             className="hidden"
           />
           {renderUploadButton()}
           <button
             onClick={handleSend}
-            className="h-8 w-8 rounded-full border border-gray-400 bg-white text-black"
-            disabled={isResponding}
+            className="h-8 w-8 rounded-full border border-gray-400 bg-white text-black disabled:opacity-50"
+            disabled={isResponding || !content}
             data-tooltip-id="tooltip_chatinput"
             data-tooltip-content="Send message"
           >
