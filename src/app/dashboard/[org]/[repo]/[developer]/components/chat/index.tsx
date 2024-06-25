@@ -26,7 +26,6 @@ export interface ChatComponentHandle {
   handleChat: (message: Message) => void;
   resetChat: (messages?: Message[]) => void;
   setLoading: (isLoading: boolean) => void;
-  setUploadedImages: (images: string[]) => void;
 }
 
 const ChatComponentInner: React.ForwardRefRenderFunction<
@@ -53,9 +52,6 @@ const ChatComponentInner: React.ForwardRefRenderFunction<
     setLoading(isLoading: boolean) {
       void setLoading(isLoading);
     },
-    setUploadedImages(images: string[]) {
-      setUploadedImages(images);
-    },
   }));
 
   const [messages, setMessages] = useState<Message[]>([]);
@@ -64,7 +60,7 @@ const ChatComponentInner: React.ForwardRefRenderFunction<
   const sidebarRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [isAtBottom, setIsAtBottom] = useState<boolean>(true);
-  const [isResponding, setIsResponding] = useState<boolean>(false);
+  const [isResponding, setIsResponding] = useState(false);
   const [height, setHeight] = useState<number>(0);
 
   const scrollToBottom = () => {
@@ -138,7 +134,6 @@ const ChatComponentInner: React.ForwardRefRenderFunction<
           todo,
           developer,
           sourceMap,
-          uploadedImages,
         }),
       });
       setLoading(false);
@@ -194,6 +189,7 @@ const ChatComponentInner: React.ForwardRefRenderFunction<
       console.error(error);
       toast.error("An error occurred while processing your request");
     } finally {
+      setUploadedImages([]);
       setLoading(false);
       setIsResponding(false);
     }
@@ -207,14 +203,14 @@ const ChatComponentInner: React.ForwardRefRenderFunction<
         onReset={handleReset}
         onCreateNewTask={handleCreateNewTask}
         onUpdateIssue={handleUpdateIssue}
+        uploadedImages={uploadedImages}
+        setUploadedImages={setUploadedImages}
         isResponding={isResponding}
         messagesEndRef={messagesEndRef}
         scrollToBottom={scrollToBottom}
         isAtBottom={isAtBottom}
         sidebarRef={sidebarRef}
         checkIfAtBottom={checkIfAtBottom}
-        uploadedImages={uploadedImages}
-        setUploadedImages={setUploadedImages}
       />
     </div>
   );
