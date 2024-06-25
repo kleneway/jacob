@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          message: "Image size exceeds the 20MB limit",
+          message: "Image size exceeds the 20MB limit. Please upload a smaller image.",
         },
         { status: 400 },
       );
@@ -72,9 +72,16 @@ export async function POST(req: NextRequest) {
     const url = await getSignedUrl(imagePath, bucketName);
     return NextResponse.json({ success: true, url });
   } catch (error) {
-    console.log("Error uploading image", error);
+    console.error("Error uploading image", error);
+    let errorMessage = "An unexpected error occurred while uploading the image.";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
     return NextResponse.json(
-      { success: false, errors: [String(error)] },
+      {
+        success: false,
+        message: errorMessage,
+      },
       { status: 500 },
     );
   }
