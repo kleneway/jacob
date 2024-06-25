@@ -20,7 +20,6 @@ interface Props {
   checkIfAtBottom: () => void;
   scrollToBottom: () => void;
   isAtBottom: boolean;
-  uploadedImages?: string[];
 }
 
 export const Chat: FC<Props> = ({
@@ -35,7 +34,6 @@ export const Chat: FC<Props> = ({
   checkIfAtBottom,
   scrollToBottom,
   isAtBottom,
-  uploadedImages = [],
 }) => (
   <div
     className="space-between flex flex-col rounded-lg px-2 pb-8 sm:p-4"
@@ -54,6 +52,7 @@ export const Chat: FC<Props> = ({
             onCreateNewTask={onCreateNewTask}
             onUpdateIssue={onUpdateIssue}
             loading={loading}
+            uploadedImages={message.images || []}
           />
         </div>
       ))}
@@ -71,6 +70,7 @@ export const Chat: FC<Props> = ({
         onSend={onSend}
         isResponding={isResponding}
         loading={loading}
+        onImageUpload={handleImageUpload}
       />
       {!isAtBottom && (
         <div

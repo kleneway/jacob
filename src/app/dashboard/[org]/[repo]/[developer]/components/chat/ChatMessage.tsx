@@ -14,7 +14,7 @@ interface Props {
   onCreateNewTask: (messages: Message[]) => void;
   onUpdateIssue: (messages: Message[]) => void;
   loading?: boolean;
-  uploadedImages?: string[];
+  uploadedImages: string[];
 }
 
 const copyToClipboard = async (text: string) => {
