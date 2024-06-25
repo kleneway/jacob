@@ -9,6 +9,7 @@ import { ChatMessage } from "./ChatMessage";
 interface Props {
   messages: Message[];
   loading: boolean;
+  uploadedImageUrls: string[];
   onSend: (message: Message) => void;
   onReset: () => void;
   onCreateNewTask: (messages: Message[]) => void;
@@ -25,6 +26,7 @@ interface Props {
 export const Chat: FC<Props> = ({
   messages,
   loading,
+  uploadedImageUrls,
   onSend,
   onCreateNewTask,
   onUpdateIssue,
@@ -52,6 +54,7 @@ export const Chat: FC<Props> = ({
             onCreateNewTask={onCreateNewTask}
             onUpdateIssue={onUpdateIssue}
             loading={loading}
+            uploadedImageUrls={uploadedImageUrls}
           />
         </div>
       ))}
@@ -69,6 +72,7 @@ export const Chat: FC<Props> = ({
         onSend={onSend}
         isResponding={isResponding}
         loading={loading}
+        uploadedImageUrls={uploadedImageUrls}
       />
       {!isAtBottom && (
         <div
