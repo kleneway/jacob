@@ -1,8 +1,4 @@
-import {
-  faArrowUp,
-  faUpload,
-  faSpinner,
-} from "@fortawesome/free-solid-svg-icons";
+import { faArrowUp, faUpload } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import {
@@ -28,7 +24,6 @@ export const ChatInput: FC<Props> = ({
   loading = false,
 }) => {
   const [content, setContent] = useState<string>();
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -44,34 +39,40 @@ export const ChatInput: FC<Props> = ({
     setContent(value);
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const files = Array.from(e.target.files);
-      const validFiles = files.filter((file) => file.size <= 20 * 1024 * 1024);
-
-      if (validFiles.length !== files.length) {
-        toast.error("Some files were larger than 20MB and were not included.");
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const validFiles = files.filter(file => {
+      if (file.size > 20 * 1024 * 1024) {
+        toast.error(`${file.name} is larger than 20MB`);
+        return false;
       }
-
-      setSelectedFiles(validFiles);
-      await uploadFiles(validFiles);
+      if (!['image/jpeg', 'image/png'].includes(file.type)) {
+        toast.error(`${file.name} is not a PNG or JPEG file`);
+        return false;
+      }
+      return true;
+    });
+    if (validFiles.length < files.length) {
+      toast.error("Some files were larger than 20MB and were not included.");
     }
+
+    uploadFiles(validFiles);
   };
 
   const uploadFiles = async (files: File[]) => {
     setIsUploading(true);
     const uploadPromises = files.map(async (file) => {
       const formData = new FormData();
-      formData.append("image", file);
+      formData.append('image', file);
+      formData.append('imageType', file.type);
+      formData.append('imageName', file.name);
 
       try {
-        const response = await fetch("/api/image/upload", {
-          method: "POST",
+        const response = await fetch('/api/image/upload', {
+          method: 'POST',
           body: formData,
         });
-
-        if (!response.ok) throw new Error("Upload failed");
-
+        if (!response.ok) throw new Error('Upload failed');
         const data = await response.json();
         return data.url;
       } catch (error) {
@@ -80,9 +81,9 @@ export const ChatInput: FC<Props> = ({
       }
     });
 
-    const uploadedUrls = (await Promise.all(uploadPromises)).filter(Boolean);
+    const urls = await Promise.all(uploadPromises);
     setIsUploading(false);
-    setContent((prev) => `${prev || ""} ${uploadedUrls.join(" ")}`);
+    return urls.filter(Boolean);
   };
 
   const handleSend = () => {
@@ -90,13 +91,30 @@ export const ChatInput: FC<Props> = ({
       alert("Please enter a message");
       return;
     }
-    onSend({ role: Role.USER, content });
-    setContent("");
+    uploadFiles([]).then((imageUrls) => {
+      const messageContent = imageUrls.length > 0
+        ? `${content}\n\nUploaded images:\n${imageUrls.join('\n')}`
+        : content;
+      onSend({ role: Role.USER, content: messageContent });
+      setContent('');
+    });
   };
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();
   };
+
+  const renderUploadButton = () => (
+    <button
+      onClick={handleUploadClick}
+      className="mr-2 h-8 w-8 rounded-full border border-gray-400 bg-white text-black"
+      disabled={isUploading || isResponding}
+      data-tooltip-id="tooltip_upload"
+      data-tooltip-content="Upload images"
+    >
+      <FontAwesomeIcon icon={faUpload} className={isUploading ? "animate-spin" : ""} />
+    </button>
+  );
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -135,25 +153,12 @@ export const ChatInput: FC<Props> = ({
           <input
             type="file"
             ref={fileInputRef}
-            onChange={handleFileChange}
+            onChange={handleImageSelect}
             accept="image/png,image/jpeg"
             multiple
             className="hidden"
           />
-          <button
-            onClick={handleUploadClick}
-            className={`mr-2 h-8 w-8 cursor-pointer rounded-full border border-gray-400 bg-white text-black ${isUploading ? "cursor-not-allowed opacity-50" : ""}`}
-            data-tooltip-id="tooltip_chatinput"
-            data-tooltip-content="Upload images"
-            disabled={isUploading}
-          >
-            <div className="flex h-full w-full items-center justify-center">
-              <FontAwesomeIcon
-                icon={isUploading ? faSpinner : faUpload}
-                spin={isUploading}
-              />
-            </div>
-          </button>
+          {renderUploadButton()}
           <button
             onClick={handleSend}
             className="h-8 w-8 rounded-full border border-gray-400 bg-white text-black"
@@ -167,6 +172,14 @@ export const ChatInput: FC<Props> = ({
       </div>
       <Tooltip
         id="tooltip_chatinput"
+        style={{
+          backgroundColor: "#353535",
+          color: "#EDEDED",
+          marginTop: -2,
+        }}
+      />
+      <Tooltip
+        id="tooltip_upload"
         style={{
           backgroundColor: "#353535",
           color: "#EDEDED",
