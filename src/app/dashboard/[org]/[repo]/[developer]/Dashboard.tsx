@@ -220,7 +220,7 @@ const Dashboard: React.FC<DashboardParams> = ({
       console.error("Failed to create issue", error);
       toast.error("Failed to create issue");
     } finally {
-      chatRef?.current?.setLoading(true);
+      chatRef?.current?.setLoading(false);
     }
   };
 
@@ -277,7 +277,7 @@ const Dashboard: React.FC<DashboardParams> = ({
       console.error("Failed to update issue", error);
       toast.error("Failed to update issue");
     } finally {
-      chatRef?.current?.setLoading(true);
+      chatRef?.current?.setLoading(false);
     }
   };
 
@@ -307,7 +307,6 @@ const Dashboard: React.FC<DashboardParams> = ({
               sourceMap={sourceMap}
               handleCreateNewTask={handleCreateNewTask}
               handleUpdateIssue={handleUpdateIssue}
-              sourceMap={`${org}/${repo}`}
             />
           </div>
         </div>
