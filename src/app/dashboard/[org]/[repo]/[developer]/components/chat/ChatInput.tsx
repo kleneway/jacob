@@ -1,4 +1,4 @@
-import { faArrowUp } from "@fortawesome/free-solid-svg-icons";
+import { faArrowUp, faUpload } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import {
@@ -24,10 +24,11 @@ export const ChatInput: FC<Props> = ({
   loading = false,
 }) => {
   const [content, setContent] = useState<string>();
-  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
@@ -39,14 +40,79 @@ export const ChatInput: FC<Props> = ({
     setContent(value);
   };
 
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const validFiles = files.filter(file => {
+      if (file.size > 20 * 1024 * 1024) {
+        toast.error(`${file.name} is larger than 20MB`);
+        return false;
+      }
+      if (!['image/jpeg', 'image/png'].includes(file.type)) {
+        toast.error(`${file.name} is not a PNG or JPEG file`);
+        return false;
+      }
+      return true;
+    });
+    setSelectedImages(validFiles);
+  };
+
+  const uploadImages = async () => {
+    setIsUploading(true);
+    const uploadPromises = selectedImages.map(async (image) => {
+      const formData = new FormData();
+      formData.append('image', image);
+      formData.append('imageType', image.type);
+      formData.append('imageName', image.name);
+
+      try {
+        const response = await fetch('/api/image/upload', {
+          method: 'POST',
+          body: formData,
+        });
+        if (!response.ok) throw new Error('Upload failed');
+        const data = await response.json();
+        return data.url;
+      } catch (error) {
+        toast.error(`Failed to upload ${image.name}`);
+        return null;
+      }
+    });
+
+    const urls = await Promise.all(uploadPromises);
+    setIsUploading(false);
+    return urls.filter(Boolean);
+  };
+
   const handleSend = () => {
     if (!content) {
       alert("Please enter a message");
       return;
     }
-    onSend({ role: Role.USER, content: content });
-    setContent("");
+    uploadImages().then((imageUrls) => {
+      const messageContent = imageUrls.length > 0
+        ? `${content}\n\nUploaded images:\n${imageUrls.join('\n')}`
+        : content;
+      onSend({ role: Role.USER, content: messageContent });
+      setContent('');
+    });
+    setSelectedImages([]);
   };
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const renderUploadButton = () => (
+    <button
+      onClick={handleUploadClick}
+      className="mr-2 h-8 w-8 rounded-full border border-gray-400 bg-white text-black"
+      disabled={isUploading || isResponding}
+      data-tooltip-id="tooltip_upload"
+      data-tooltip-content="Upload images"
+    >
+      <FontAwesomeIcon icon={faUpload} className={isUploading ? "animate-spin" : ""} />
+    </button>
+  );
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -62,81 +128,6 @@ export const ChatInput: FC<Props> = ({
       textareaRef.current.style.height = `${textareaRef.current?.scrollHeight}px`;
     }
   }, [content]);
-
-  const uploadImages = async (files: File[]): Promise<string[]> => {
-    setIsUploading(true);
-    const uploadPromises = files.map(async (file) => {
-      const formData = new FormData();
-      formData.append("image", file);
-      formData.append("imageType", file.type);
-      formData.append("imageName", file.name);
-
-      try {
-        const response = await fetch("/api/image/upload", {
-          method: "POST",
-          body: formData,
-        });
-        if (!response.ok) throw new Error("Upload failed");
-        const data: { url: string } = await response.json();
-        return data.url;
-      } catch (error) {
-        toast.error(`Failed to upload ${file.name}`);
-        return null;
-      }
-    });
-
-    const urls = await Promise.all(uploadPromises);
-    setIsUploading(false);
-    return urls.filter(Boolean) as string[];
-  };
-
-  const handleUploadClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-
-    const validFiles = Array.from(files).filter((file) => {
-      if (file.size > 20 * 1024 * 1024) {
-        toast.error(`${file.name} is larger than 20MB`);
-        return false;
-      }
-      if (!["image/jpeg", "image/png"].includes(file.type)) {
-        toast.error(`${file.name} is not a PNG or JPEG file`);
-        return false;
-      }
-      return true;
-    });
-
-    if (validFiles.length > 0) {
-      try {
-        const urls = await uploadImages(validFiles);
-        toast.success(`Successfully uploaded ${urls.length} image(s)`);
-      } catch (error) {
-        console.error("Upload failed:", error);
-      }
-    }
-
-    // Clear the file input
-    e.target.value = "";
-  };
-
-  const renderUploadButton = () => (
-    <button
-      onClick={handleUploadClick}
-      className="mr-2 h-8 w-8 rounded-full border border-gray-400 bg-white text-black"
-      disabled={isUploading || isResponding}
-      data-tooltip-id="tooltip_upload"
-      data-tooltip-content="Upload images"
-    >
-      <FontAwesomeIcon
-        icon={faUpload}
-        className={isUploading ? "animate-spin" : ""}
-      />
-    </button>
-  );
 
   return (
     <div
@@ -160,7 +151,7 @@ export const ChatInput: FC<Props> = ({
           <input
             type="file"
             ref={fileInputRef}
-            onChange={handleFileChange}
+            onChange={handleImageSelect}
             accept="image/png,image/jpeg"
             multiple
             className="hidden"
