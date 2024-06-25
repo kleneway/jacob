@@ -16,6 +16,7 @@ const DEFAULT_PROMPT = "What can I help you with today?";
 type Props = {
   developer: Developer | undefined;
   todo: Todo | undefined;
+  sourceMap: string | undefined;
   handleCreateNewTask: (messages: Message[]) => void;
   handleUpdateIssue: (messages: Message[]) => void;
   headerHeight?: number;
@@ -31,7 +32,14 @@ const ChatComponentInner: React.ForwardRefRenderFunction<
   ChatComponentHandle,
   Props
 > = (
-  { developer, todo, handleCreateNewTask, handleUpdateIssue, headerHeight = 0 },
+  {
+    developer,
+    todo,
+    sourceMap,
+    handleCreateNewTask,
+    handleUpdateIssue,
+    headerHeight = 0,
+  },
   ref,
 ) => {
   useImperativeHandle(ref, () => ({
@@ -47,6 +55,7 @@ const ChatComponentInner: React.ForwardRefRenderFunction<
   }));
 
   const [messages, setMessages] = useState<Message[]>([]);
+  const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -108,8 +117,10 @@ const ChatComponentInner: React.ForwardRefRenderFunction<
 
   const handleSend = async (message: Message) => {
     try {
-      const updatedMessages = [...messages, message];
+      const messageWithImages = { ...message, imageUrls: uploadedImageUrls };
+      const updatedMessages = [...messages, messageWithImages];
 
+      setUploadedImageUrls([]);
       setMessages(updatedMessages);
       setLoading(true);
       setResponding(true);
@@ -124,6 +135,7 @@ const ChatComponentInner: React.ForwardRefRenderFunction<
           prompt,
           todo,
           developer,
+          sourceMap,
         }),
       });
       setLoading(false);
@@ -188,6 +200,8 @@ const ChatComponentInner: React.ForwardRefRenderFunction<
       <Chat
         messages={messages}
         loading={loading}
+        uploadedImageUrls={uploadedImageUrls}
+        setUploadedImageUrls={setUploadedImageUrls}
         onSend={handleSend}
         onReset={handleReset}
         onCreateNewTask={handleCreateNewTask}
