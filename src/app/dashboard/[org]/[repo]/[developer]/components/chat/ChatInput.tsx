@@ -1,4 +1,4 @@
-import { faArrowUp, faUpload } from "@fortawesome/free-solid-svg-icons";
+import { faArrowUp, faUpload, faImage } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import {
@@ -24,10 +24,9 @@ export const ChatInput: FC<Props> = ({
   loading = false,
 }) => {
   const [content, setContent] = useState<string>();
-  const [selectedImages, setSelectedImages] = useState<File[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
-  const [showUploadedImages, setShowUploadedImages] = useState(false);
+  const [showUploadedImages, setShowUploadedImages] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -43,83 +42,77 @@ export const ChatInput: FC<Props> = ({
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length === 0) return;
+    const files = e.target.files;
+    if (!files) return;
 
     setIsUploading(true);
-    const newUploadedImages: string[] = [];
 
-    for (const file of files) {
-      if (!file) {
-        console.error("File is undefined");
-        continue;
-      }
-
-      if (!['image/png', 'image/jpeg', 'image/jpg'].includes(file.type)) {
-        toast.error(`${file.name} is not a valid image type. Please upload PNG or JPEG files.`);
-        continue;
+    const uploadPromises = Array.from(files).map(async (file) => {
+      if (!file.type.startsWith("image/")) {
+        toast.error(`${file.name} is not an image file`);
+        return null;
       }
 
       if (file.size > 20 * 1024 * 1024) {
-        toast.error(`${file.name} exceeds the 20MB size limit.`);
-        continue;
+        toast.error(`${file.name} exceeds the 20MB size limit`);
+        return null;
       }
 
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = async () => {
-        const base64Image = reader.result as string;
+      const formData = new FormData();
+      formData.append("image", file);
 
-        try {
-          const response = await fetch("/api/image/upload", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              image: base64Image,
-              name: file.name,
-            }),
-          });
+      try {
+        const response = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
 
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-          }
-
-          const data = await response.json();
-          newUploadedImages.push(data.url);
-          setUploadedImages((prev) => [...prev, data.url]);
-          setShowUploadedImages(true);
-        } catch (error) {
-          if (error instanceof Error) {
-            console.error("Error uploading file:", error.message);
-            toast.error(`Failed to upload ${file.name}: ${error.message}`);
-          } else {
-            console.error("Unknown error uploading file:", error);
-          }
-          toast.error(`Failed to upload ${file.name}`);
+        if (!response.ok) {
+          throw new Error(`Failed to upload ${file.name}`);
         }
-      };
+
+        const result = await response.json();
+        return result.url;
+      } catch (error) {
+        console.error("Error uploading image:", error);
+        if (error instanceof Error) {
+          toast.error(`Error uploading ${file.name}: ${error.message}`);
+        }
+        return null;
+      }
+    });
+
+    try {
+      const uploadedUrls = await Promise.all(uploadPromises);
+      const validUrls = uploadedUrls.filter((url): url is string => url !== null);
+      setUploadedImages((prevUrls) => [...prevUrls, ...validUrls]);
+    } catch (error) {
+      console.error("Error processing uploads:", error);
+    } finally {
+      setIsUploading(false);
     }
-    setUploadedImages((prev) => [...prev, ...newUploadedImages]);
-    setShowUploadedImages(true);
-    setIsUploading(false);
-    e.target.value = '';
   };
 
   const handleSend = () => {
-    if (!content) {
-      alert("Please enter a message");
+    if (!content && uploadedImages.length === 0) {
+      toast.error("Please enter a message or upload an image");
       return;
     }
-    const messageContent = uploadedImages.length > 0
-      ? `${content}\n\nUploaded images:\n${uploadedImages.join('\n')}`
-      : content;
+
+    let messageContent = content || "";
+
+    if (uploadedImages.length > 0) {
+      messageContent += "\n\nUploaded images:\n" + uploadedImages.join("\n");
+    }
+
     onSend({ role: Role.USER, content: messageContent });
-    setContent('');
+    setContent("");
     setUploadedImages([]);
     setShowUploadedImages(false);
+  };
+
+  const toggleUploadedImages = () => {
+    setShowUploadedImages(!showUploadedImages);
   };
 
   const handleUploadClick = () => {
@@ -171,12 +164,31 @@ export const ChatInput: FC<Props> = ({
         <p className="mt-2 text-base text-white text-opacity-40">
           {content?.length ?? 0}/3000
         </p>
+        {uploadedImages.length > 0 && (
+          <div className="mt-2 flex items-center">
+            <button
+              onClick={toggleUploadedImages}
+              className="text-sm text-gray-400 hover:text-gray-300"
+            >
+              <FontAwesomeIcon icon={faImage} className="mr-1" />
+              {uploadedImages.length} image{uploadedImages.length > 1 ? 's' : ''} uploaded
+            </button>
+          </div>
+        )}
+        {showUploadedImages && (
+          <div className="mt-2 flex flex-wrap gap-2">
+            {uploadedImages.map((url, index) => (
+              <img key={index} src={url} alt={`Uploaded ${index + 1}`} className="h-16 w-16 object-cover rounded" />
+            ))}
+          </div>
+        )}
         <div className="mt-2 flex w-full items-center justify-end">
+          {uploadedImages.length > 0 && <p className="mr-2 text-sm text-gray-400">{uploadedImages.length} image{uploadedImages.length > 1 ? 's' : ''} ready</p>}
           <input
             type="file"
             ref={fileInputRef}
             onChange={handleImageUpload}
-            accept="image/png,image/jpeg"
+            accept="image/png,image/jpeg,image/jpg"
             multiple
             className="hidden"
           />
