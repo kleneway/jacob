@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    let imageBuffer = Buffer.from(image, "base64");
+    const imageBuffer = Buffer.from(image, "base64");
     let resizedImageBuffer = imageBuffer;
     if (shouldResize) {
       resizedImageBuffer = await resizeImageForGptVision(
@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
     }
     return NextResponse.json(
       { success: false, message: errorMessage },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

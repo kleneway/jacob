@@ -45,7 +45,7 @@ export const ChatInput: FC<Props> = ({
       return;
     }
     onSend({ role: Role.USER, content: content });
-    setContent('');
+    setContent("");
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -67,13 +67,13 @@ export const ChatInput: FC<Props> = ({
     setIsUploading(true);
     const uploadPromises = files.map(async (file) => {
       const formData = new FormData();
-      formData.append('image', file);
-      formData.append('imageType', file.type);
-      formData.append('imageName', file.name);
+      formData.append("image", file);
+      formData.append("imageType", file.type);
+      formData.append("imageName", file.name);
 
       try {
-        const response = await fetch('/api/image/upload', {
-          method: 'POST',
+        const response = await fetch("/api/image/upload", {
+          method: "POST",
           body: formData,
         });
         if (!response.ok) throw new Error("Upload failed");
@@ -98,12 +98,12 @@ export const ChatInput: FC<Props> = ({
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    const validFiles = Array.from(files).filter(file => {
+    const validFiles = Array.from(files).filter((file) => {
       if (file.size > 20 * 1024 * 1024) {
         toast.error(`${file.name} is larger than 20MB`);
         return false;
       }
-      if (!['image/jpeg', 'image/png'].includes(file.type)) {
+      if (!["image/jpeg", "image/png"].includes(file.type)) {
         toast.error(`${file.name} is not a PNG or JPEG file`);
         return false;
       }
@@ -115,12 +115,12 @@ export const ChatInput: FC<Props> = ({
         const urls = await uploadImages(validFiles);
         toast.success(`Successfully uploaded ${urls.length} image(s)`);
       } catch (error) {
-        console.error('Upload failed:', error);
+        console.error("Upload failed:", error);
       }
     }
 
     // Clear the file input
-    e.target.value = '';
+    e.target.value = "";
   };
 
   const renderUploadButton = () => (
@@ -131,7 +131,10 @@ export const ChatInput: FC<Props> = ({
       data-tooltip-id="tooltip_upload"
       data-tooltip-content="Upload images"
     >
-      <FontAwesomeIcon icon={faUpload} className={isUploading ? "animate-spin" : ""} />
+      <FontAwesomeIcon
+        icon={faUpload}
+        className={isUploading ? "animate-spin" : ""}
+      />
     </button>
   );
 
