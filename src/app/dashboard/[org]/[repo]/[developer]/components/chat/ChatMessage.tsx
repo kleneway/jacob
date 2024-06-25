@@ -14,7 +14,6 @@ interface Props {
   onCreateNewTask: (messages: Message[]) => void;
   onUpdateIssue: (messages: Message[]) => void;
   loading?: boolean;
-  uploadedImages: string[];
 }
 
 const copyToClipboard = async (text: string) => {
@@ -78,7 +77,6 @@ export const ChatMessage: FC<Props> = ({
   onCreateNewTask,
   onUpdateIssue,
   loading = false,
-  uploadedImages = [],
 }) => {
   const [content, setContent] = useState<string>(message.content);
 
@@ -114,12 +112,15 @@ export const ChatMessage: FC<Props> = ({
           >
             {content}
           </Markdown>
-          {message.role === Role.USER && uploadedImages.length > 0 && (
+          {message.role === Role.USER && message.images && message.images.length > 0 && (
             <div className="mt-2 flex flex-wrap">
-              {uploadedImages.map((url, index) => (
+              {message.images.map((url, index) => (
                 <img key={index} src={url} alt={`Uploaded ${index + 1}`} className="m-1 h-16 w-16 rounded object-cover" />
               ))}
             </div>
+          )}
+          {message.role === Role.USER && message.images && message.images.length > 0 && (
+            <p className="text-xs text-gray-400 mt-1">{message.images.length} image{message.images.length > 1 ? 's' : ''} uploaded</p>
           )}
         </div>
       )}
