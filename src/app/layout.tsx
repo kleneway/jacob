@@ -29,7 +29,18 @@ export default function RootLayout({
         className={`h-screen w-screen bg-[#1d265d] text-center font-sans leading-relaxed text-white ${poppins.variable}`}
       >
         <TRPCReactProvider>{children}</TRPCReactProvider>
-        <ToastContainer />
+        <ToastContainer
+          position="top-right"
+          autoClose={5000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="dark"
+        />
       </body>
     </html>
   );
