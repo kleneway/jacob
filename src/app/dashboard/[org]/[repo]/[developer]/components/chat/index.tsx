@@ -61,6 +61,7 @@ const ChatComponentInner: React.ForwardRefRenderFunction<
   const [isAtBottom, setIsAtBottom] = useState<boolean>(true);
   const [responding, setResponding] = useState<boolean>(false);
   const [height, setHeight] = useState<number>(0);
+  const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -152,66 +153,4 @@ const ChatComponentInner: React.ForwardRefRenderFunction<
 
       while (!runner.ended) {
         for await (const chunk of runner) {
-          // The chunk is already a parsed object, but let's ensure it's in the expected format
-          if (!chunk.choices[0]?.delta) {
-            continue;
-          }
-          const chunkValue = chunk.choices[0].delta.content ?? ""; // Assuming chunk.data is the content we're interested in
-
-          completedText += chunkValue;
-          if (isFirst) {
-            isFirst = false;
-            setMessages((messages) => [
-              ...messages,
-              {
-                role: Role.ASSISTANT,
-                content: chunkValue,
-              },
-            ]);
-          } else {
-            setMessages((messages) => {
-              const lastMessage = messages[messages.length - 1];
-
-              if (lastMessage) {
-                const updatedMessage = {
-                  ...lastMessage,
-                  content: completedText,
-                };
-                return [...messages.slice(0, -1), updatedMessage];
-              }
-              return messages;
-            });
-          }
-        }
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("An error occurred while processing your request");
-    } finally {
-      setLoading(false);
-      setResponding(false);
-    }
-  };
-  return (
-    <div className="flex h-full flex-col" style={{ height }}>
-      <Chat
-        messages={messages}
-        loading={loading}
-        uploadedImageUrls={uploadedImageUrls}
-        onSend={handleSend}
-        onReset={handleReset}
-        onCreateNewTask={handleCreateNewTask}
-        onUpdateIssue={handleUpdateIssue}
-        isResponding={responding}
-        messagesEndRef={messagesEndRef}
-        scrollToBottom={scrollToBottom}
-        isAtBottom={isAtBottom}
-        sidebarRef={sidebarRef}
-        checkIfAtBottom={checkIfAtBottom}
-      />
-    </div>
-  );
-};
-
-const ChatComponent = forwardRef(ChatComponentInner);
-export default ChatComponent;
+          // The chunk is already a parsed object, but let's ensure it's
