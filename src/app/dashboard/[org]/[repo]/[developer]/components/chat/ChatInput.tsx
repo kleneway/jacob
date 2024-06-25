@@ -41,12 +41,12 @@ export const ChatInput: FC<Props> = ({
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    const validFiles = files.filter(file => {
+    const validFiles = files.filter((file) => {
       if (file.size > 20 * 1024 * 1024) {
         toast.error(`${file.name} is larger than 20MB`);
         return false;
       }
-      if (!['image/jpeg', 'image/png'].includes(file.type)) {
+      if (!["image/jpeg", "image/png"].includes(file.type)) {
         toast.error(`${file.name} is not a PNG or JPEG file`);
         return false;
       }
@@ -63,16 +63,16 @@ export const ChatInput: FC<Props> = ({
     setIsUploading(true);
     const uploadPromises = files.map(async (file) => {
       const formData = new FormData();
-      formData.append('image', file);
-      formData.append('imageType', file.type);
-      formData.append('imageName', file.name);
+      formData.append("image", file);
+      formData.append("imageType", file.type);
+      formData.append("imageName", file.name);
 
       try {
-        const response = await fetch('/api/image/upload', {
-          method: 'POST',
+        const response = await fetch("/api/image/upload", {
+          method: "POST",
           body: formData,
         });
-        if (!response.ok) throw new Error('Upload failed');
+        if (!response.ok) throw new Error("Upload failed");
         const data = await response.json();
         return data.url;
       } catch (error) {
@@ -92,11 +92,12 @@ export const ChatInput: FC<Props> = ({
       return;
     }
     uploadFiles([]).then((imageUrls) => {
-      const messageContent = imageUrls.length > 0
-        ? `${content}\n\nUploaded images:\n${imageUrls.join('\n')}`
-        : content;
+      const messageContent =
+        imageUrls.length > 0
+          ? `${content}\n\nUploaded images:\n${imageUrls.join("\n")}`
+          : content;
       onSend({ role: Role.USER, content: messageContent });
-      setContent('');
+      setContent("");
     });
   };
 
@@ -112,7 +113,10 @@ export const ChatInput: FC<Props> = ({
       data-tooltip-id="tooltip_upload"
       data-tooltip-content="Upload images"
     >
-      <FontAwesomeIcon icon={faUpload} className={isUploading ? "animate-spin" : ""} />
+      <FontAwesomeIcon
+        icon={faUpload}
+        className={isUploading ? "animate-spin" : ""}
+      />
     </button>
   );
 
