@@ -294,35 +294,55 @@ h1 {
 }
 
 .chat-image-upload-button {
-  @apply flex items-center justify-center w-10 h-10 rounded-full bg-blueGray-700 hover:bg-blueGray-600 transition-colors duration-200 ease-in-out;
+  @apply flex items-center justify-center w-10 h-10 rounded-full bg-blueGray-700 hover:bg-blueGray-600 transition-colors duration-200 ease-in-out mr-2;
 }
 
 .chat-image-upload-button svg {
-  @apply text-light-blue;
+  @apply text-light-blue w-5 h-5;
 }
 
 .chat-image-upload-button:hover svg {
   @apply text-white;
 }
 
+.chat-image-upload-button:disabled {
+  @apply opacity-50 cursor-not-allowed;
+}
+
 .chat-uploaded-images-preview {
-  @apply mt-2 flex flex-wrap gap-1;
+  @apply mt-2 flex flex-wrap gap-2;
 }
 
 .chat-uploaded-image-thumbnail {
-  @apply h-16 w-16 rounded object-cover;
+  @apply h-16 w-16 rounded object-cover border-2 border-light-blue;
 }
 
 .chat-uploaded-images-count {
-  @apply flex items-center text-sm text-light-blue hover:text-navy-blue;
+  @apply flex items-center text-sm text-light-blue hover:text-navy-blue cursor-pointer;
 }
 
 .chat-uploaded-images-count svg {
   @apply mr-1;
 }
 
+.chat-uploaded-images-count:hover {
+  @apply underline;
+}
+
 .chat-image-upload-loader {
   @apply absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-light-blue;
+}
+
+.chat-image-error {
+  @apply text-red-500 text-sm mt-1;
+}
+
+.chat-image-success {
+  @apply text-green-500 text-sm mt-1;
+}
+
+.chat-message-images {
+  @apply mt-2 flex flex-wrap gap-2;
 }
 
 @tailwind utilities;
