@@ -293,4 +293,36 @@ h1 {
   animation: fade-in 0.5s ease-in-out;
 }
 
+.chat-image-upload-button {
+  @apply flex items-center justify-center w-10 h-10 rounded-full bg-blueGray-700 hover:bg-blueGray-600 transition-colors duration-200 ease-in-out;
+}
+
+.chat-image-upload-button svg {
+  @apply text-light-blue;
+}
+
+.chat-image-upload-button:hover svg {
+  @apply text-white;
+}
+
+.chat-uploaded-images-preview {
+  @apply mt-2 flex flex-wrap gap-1;
+}
+
+.chat-uploaded-image-thumbnail {
+  @apply h-16 w-16 rounded object-cover;
+}
+
+.chat-uploaded-images-count {
+  @apply flex items-center text-sm text-light-blue hover:text-navy-blue;
+}
+
+.chat-uploaded-images-count svg {
+  @apply mr-1;
+}
+
+.chat-image-upload-loader {
+  @apply absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-light-blue;
+}
+
 @tailwind utilities;
