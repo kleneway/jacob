@@ -55,7 +55,6 @@ const ChatComponentInner: React.ForwardRefRenderFunction<
   }));
 
   const [messages, setMessages] = useState<Message[]>([]);
-  const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -117,10 +116,8 @@ const ChatComponentInner: React.ForwardRefRenderFunction<
 
   const handleSend = async (message: Message) => {
     try {
-      const messageWithImages = { ...message, imageUrls: uploadedImageUrls };
-      const updatedMessages = [...messages, messageWithImages];
+      const updatedMessages = [...messages, message];
 
-      setUploadedImageUrls([]);
       setMessages(updatedMessages);
       setLoading(true);
       setResponding(true);
@@ -201,7 +198,6 @@ const ChatComponentInner: React.ForwardRefRenderFunction<
         messages={messages}
         loading={loading}
         uploadedImageUrls={uploadedImageUrls}
-        setUploadedImageUrls={setUploadedImageUrls}
         onSend={handleSend}
         onReset={handleReset}
         onCreateNewTask={handleCreateNewTask}
