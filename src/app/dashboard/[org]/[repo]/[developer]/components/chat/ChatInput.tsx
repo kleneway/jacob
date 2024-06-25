@@ -24,11 +24,11 @@ export const ChatInput: FC<Props> = ({
   loading = false,
 }) => {
   const [content, setContent] = useState<string>();
-  const [selectedImages, setSelectedImages] = useState<File[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
@@ -38,49 +38,6 @@ export const ChatInput: FC<Props> = ({
     }
 
     setContent(value);
-  };
-
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    const validFiles = files.filter(file => {
-      if (file.size > 20 * 1024 * 1024) {
-        toast.error(`${file.name} is larger than 20MB`);
-        return false;
-      }
-      if (!['image/jpeg', 'image/png'].includes(file.type)) {
-        toast.error(`${file.name} is not a PNG or JPEG file`);
-        return false;
-      }
-      return true;
-    });
-    setSelectedImages(validFiles);
-  };
-
-  const uploadImages = async () => {
-    setIsUploading(true);
-    const uploadPromises = selectedImages.map(async (image) => {
-      const formData = new FormData();
-      formData.append('image', image);
-      formData.append('imageType', image.type);
-      formData.append('imageName', image.name);
-
-      try {
-        const response = await fetch('/api/image/upload', {
-          method: 'POST',
-          body: formData,
-        });
-        if (!response.ok) throw new Error('Upload failed');
-        const data = await response.json();
-        return data.url;
-      } catch (error) {
-        toast.error(`Failed to upload ${image.name}`);
-        return null;
-      }
-    });
-
-    const urls = await Promise.all(uploadPromises);
-    setIsUploading(false);
-    return urls.filter(Boolean);
   };
 
   const handleSend = () => {
@@ -98,22 +55,6 @@ export const ChatInput: FC<Props> = ({
     setSelectedImages([]);
   };
 
-  const handleUploadClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const renderUploadButton = () => (
-    <button
-      onClick={handleUploadClick}
-      className="mr-2 h-8 w-8 rounded-full border border-gray-400 bg-white text-black"
-      disabled={isUploading || isResponding}
-      data-tooltip-id="tooltip_upload"
-      data-tooltip-content="Upload images"
-    >
-      <FontAwesomeIcon icon={faUpload} className={isUploading ? "animate-spin" : ""} />
-    </button>
-  );
-
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -129,26 +70,58 @@ export const ChatInput: FC<Props> = ({
     }
   }, [content]);
 
+  const uploadImages = async (files: File[]) => {
+    setIsUploading(true);
+    const uploadPromises = files.map(async (file) => {
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('imageType', file.type);
+      formData.append('imageName', file.name);
+
+      try {
+        const response = await fetch('/api/image/upload', {
+          method: 'POST',
+          body: formData,
+        });
+        if (!response.ok) throw new Error('Upload failed');
+        const data = await response.json();
+        return data.url;
+      } catch (error) {
+        toast.error(`Failed to upload ${file.name}`);
+        return null;
+      }
+    });
+
+    const urls = await Promise.all(uploadPromises);
+    setIsUploading(false);
+    return urls.filter((url): url is string => url !== null);
+  };
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (!files) return;
+    if (!files || files.length === 0) return;
 
     const validFiles = Array.from(files).filter(file => {
       if (!file.type.match(/^image\/(jpeg|png)$/)) {
-        toast.error(`${file.name} is not a valid image file. Only JPEG and PNG are allowed.`);
+        toast.error(`${file.name} is not a valid image file`);
         return false;
       }
       if (file.size > 20 * 1024 * 1024) {
-        toast.error(`${file.name} exceeds the 20MB size limit.`);
+        toast.error(`${file.name} is too large (max 20MB)`);
         return false;
       }
       return true;
     });
 
     if (validFiles.length > 0) {
-      setIsUploading(true);
-      // TODO: Implement actual file upload logic here
-      // After upload is complete, set setIsUploading(false)
+      uploadImages(validFiles).then((urls) => {
+        setUploadedImageUrls(prevUrls => [...prevUrls, ...urls]);
+        toast.success(`Successfully uploaded ${urls.length} image(s)`);
+      });
     }
 
     // Clear the file input
@@ -163,11 +136,14 @@ export const ChatInput: FC<Props> = ({
     >
       <textarea
         ref={textareaRef}
-        className="w-full bg-transparent text-sm text-white text-opacity-80 placeholder-gray-400 outline-none"
+        className={`w-full bg-transparent text-sm text-white text-opacity-80 placeholder-gray-400 outline-none ${
+          isUploading ? 'cursor-wait' : ''
+        }`}
         placeholder="Send a reply.."
         value={content}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
+        disabled={isUploading}
       />
       <div className="items-between flex w-full flex-row">
         <p className="mt-2 text-base text-white text-opacity-40">
@@ -186,7 +162,7 @@ export const ChatInput: FC<Props> = ({
           <button
             onClick={handleSend}
             className="h-8 w-8 rounded-full border border-gray-400 bg-white text-black"
-            disabled={isResponding}
+            disabled={isResponding || isUploading}
             data-tooltip-id="tooltip_chatinput"
             data-tooltip-content="Send message"
           >
