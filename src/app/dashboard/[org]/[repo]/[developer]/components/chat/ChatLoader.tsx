@@ -4,7 +4,11 @@ interface ChatLoaderProps extends HTMLAttributes<HTMLDivElement> {
   size?: "small" | "large";
 }
 
-export const ChatLoader: FC<ChatLoaderProps> = ({ size = "large", className, ...props }) => {
+export const ChatLoader: FC<ChatLoaderProps> = ({
+  size = "large",
+  className,
+  ...props
+}) => {
   return (
     <div className={`flex-start flex flex-col ${className}`} {...props}>
       <div
@@ -22,7 +26,9 @@ export const ChatLoader: FC<ChatLoaderProps> = ({ size = "large", className, ...
           <div
             className={`${size === "large" ? "h-2 w-2" : "h-1 w-1"} animate-bounce-fast rounded-full bg-pink [animation-delay:-0.8s]`}
           ></div>
-          <div className={`${size === "large" ? "h-2 w-2" : "h-1 w-1"} animate-bounce-fast rounded-full bg-orange`}></div>
+          <div
+            className={`${size === "large" ? "h-2 w-2" : "h-1 w-1"} animate-bounce-fast rounded-full bg-orange`}
+          ></div>
         </div>
       </div>
     </div>

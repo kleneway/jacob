@@ -1,4 +1,4 @@
-import { faArrowUp, faUpload } from "@fortawesome/free-solid-svg-icons";
+import { faArrowUp } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import {
@@ -25,7 +25,6 @@ export const ChatInput: FC<Props> = ({
 }) => {
   const [content, setContent] = useState<string>();
   const [isUploading, setIsUploading] = useState<boolean>(false);
-  const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -45,14 +44,8 @@ export const ChatInput: FC<Props> = ({
       alert("Please enter a message");
       return;
     }
-    uploadImages().then((imageUrls) => {
-      const messageContent = imageUrls.length > 0
-        ? `${content}\n\nUploaded images:\n${imageUrls.join('\n')}`
-        : content;
-      onSend({ role: Role.USER, content: messageContent });
-      setContent('');
-    });
-    setSelectedImages([]);
+    onSend({ role: Role.USER, content: content });
+    setContent('');
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -70,7 +63,7 @@ export const ChatInput: FC<Props> = ({
     }
   }, [content]);
 
-  const uploadImages = async (files: File[]) => {
+  const uploadImages = async (files: File[]): Promise<string[]> => {
     setIsUploading(true);
     const uploadPromises = files.map(async (file) => {
       const formData = new FormData();
@@ -83,8 +76,8 @@ export const ChatInput: FC<Props> = ({
           method: 'POST',
           body: formData,
         });
-        if (!response.ok) throw new Error('Upload failed');
-        const data = await response.json();
+        if (!response.ok) throw new Error("Upload failed");
+        const data: { url: string } = await response.json();
         return data.url;
       } catch (error) {
         toast.error(`Failed to upload ${file.name}`);
@@ -94,39 +87,53 @@ export const ChatInput: FC<Props> = ({
 
     const urls = await Promise.all(uploadPromises);
     setIsUploading(false);
-    return urls.filter((url): url is string => url !== null);
+    return urls.filter(Boolean) as string[];
   };
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
     const validFiles = Array.from(files).filter(file => {
-      if (!file.type.match(/^image\/(jpeg|png)$/)) {
-        toast.error(`${file.name} is not a valid image file`);
+      if (file.size > 20 * 1024 * 1024) {
+        toast.error(`${file.name} is larger than 20MB`);
         return false;
       }
-      if (file.size > 20 * 1024 * 1024) {
-        toast.error(`${file.name} is too large (max 20MB)`);
+      if (!['image/jpeg', 'image/png'].includes(file.type)) {
+        toast.error(`${file.name} is not a PNG or JPEG file`);
         return false;
       }
       return true;
     });
 
     if (validFiles.length > 0) {
-      uploadImages(validFiles).then((urls) => {
-        setUploadedImageUrls(prevUrls => [...prevUrls, ...urls]);
+      try {
+        const urls = await uploadImages(validFiles);
         toast.success(`Successfully uploaded ${urls.length} image(s)`);
-      });
+      } catch (error) {
+        console.error('Upload failed:', error);
+      }
     }
 
     // Clear the file input
     e.target.value = '';
   };
+
+  const renderUploadButton = () => (
+    <button
+      onClick={handleUploadClick}
+      className="mr-2 h-8 w-8 rounded-full border border-gray-400 bg-white text-black"
+      disabled={isUploading || isResponding}
+      data-tooltip-id="tooltip_upload"
+      data-tooltip-content="Upload images"
+    >
+      <FontAwesomeIcon icon={faUpload} className={isUploading ? "animate-spin" : ""} />
+    </button>
+  );
 
   return (
     <div
@@ -136,14 +143,11 @@ export const ChatInput: FC<Props> = ({
     >
       <textarea
         ref={textareaRef}
-        className={`w-full bg-transparent text-sm text-white text-opacity-80 placeholder-gray-400 outline-none ${
-          isUploading ? 'cursor-wait' : ''
-        }`}
+        className="w-full bg-transparent text-sm text-white text-opacity-80 placeholder-gray-400 outline-none"
         placeholder="Send a reply.."
         value={content}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
-        disabled={isUploading}
       />
       <div className="items-between flex w-full flex-row">
         <p className="mt-2 text-base text-white text-opacity-40">
@@ -162,7 +166,7 @@ export const ChatInput: FC<Props> = ({
           <button
             onClick={handleSend}
             className="h-8 w-8 rounded-full border border-gray-400 bg-white text-black"
-            disabled={isResponding || isUploading}
+            disabled={isResponding}
             data-tooltip-id="tooltip_chatinput"
             data-tooltip-content="Send message"
           >
