@@ -26,6 +26,7 @@ export interface ChatComponentHandle {
   handleChat: (message: Message) => void;
   resetChat: (messages?: Message[]) => void;
   setLoading: (isLoading: boolean) => void;
+  setUploadedImages: (images: string[]) => void;
 }
 
 const ChatComponentInner: React.ForwardRefRenderFunction<
@@ -52,15 +53,18 @@ const ChatComponentInner: React.ForwardRefRenderFunction<
     setLoading(isLoading: boolean) {
       void setLoading(isLoading);
     },
+    setUploadedImages(images: string[]) {
+      setUploadedImages(images);
+    },
   }));
 
   const [messages, setMessages] = useState<Message[]>([]);
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [isAtBottom, setIsAtBottom] = useState<boolean>(true);
-  const [responding, setResponding] = useState<boolean>(false);
-  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [isResponding, setIsResponding] = useState<boolean>(false);
   const [height, setHeight] = useState<number>(0);
 
   const scrollToBottom = () => {
@@ -117,12 +121,11 @@ const ChatComponentInner: React.ForwardRefRenderFunction<
 
   const handleSend = async (message: Message) => {
     try {
-      message.images = uploadedImages;
       const updatedMessages = [...messages, message];
 
       setMessages(updatedMessages);
       setLoading(true);
-      setResponding(true);
+      setIsResponding(true);
 
       const response = await fetch("/api/chat", {
         method: "POST",
@@ -135,6 +138,7 @@ const ChatComponentInner: React.ForwardRefRenderFunction<
           todo,
           developer,
           sourceMap,
+          uploadedImages,
         }),
       });
       setLoading(false);
@@ -191,8 +195,7 @@ const ChatComponentInner: React.ForwardRefRenderFunction<
       toast.error("An error occurred while processing your request");
     } finally {
       setLoading(false);
-      setResponding(false);
-      setUploadedImages([]);
+      setIsResponding(false);
     }
   };
   return (
@@ -204,12 +207,14 @@ const ChatComponentInner: React.ForwardRefRenderFunction<
         onReset={handleReset}
         onCreateNewTask={handleCreateNewTask}
         onUpdateIssue={handleUpdateIssue}
-        isResponding={responding}
+        isResponding={isResponding}
         messagesEndRef={messagesEndRef}
         scrollToBottom={scrollToBottom}
         isAtBottom={isAtBottom}
         sidebarRef={sidebarRef}
         checkIfAtBottom={checkIfAtBottom}
+        uploadedImages={uploadedImages}
+        setUploadedImages={setUploadedImages}
       />
     </div>
   );
