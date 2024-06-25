@@ -1,10 +1,10 @@
 import "~/styles/globals.css";
-import "react-toastify/dist/ReactToastify.css";
 
 import { Poppins } from "next/font/google";
 
-import { TRPCReactProvider } from "@/trpc/react";
+import { TRPCReactProvider } from "~/trpc/react";
 import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -30,16 +30,19 @@ export default function RootLayout({
       >
         <TRPCReactProvider>{children}</TRPCReactProvider>
         <ToastContainer
-          position="top-right"
-          autoClose={3000}
+          position="bottom-right"
+          autoClose={5000}
           hideProgressBar={false}
-          newestOnTop={false}
+          newestOnTop={true}
           closeOnClick
           rtl={false}
           pauseOnFocusLoss
           draggable
           pauseOnHover
           theme="dark"
+          toastClassName="bg-gray-800 text-white"
+          progressClassName="bg-blue-500"
+          bodyClassName="text-sm"
         />
       </body>
     </html>
