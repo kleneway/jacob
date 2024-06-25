@@ -1,4 +1,8 @@
-import { faArrowUp, faUpload, faSpinner } from "@fortawesome/free-solid-svg-icons";
+import {
+  faArrowUp,
+  faUpload,
+  faSpinner,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import {
@@ -43,12 +47,12 @@ export const ChatInput: FC<Props> = ({
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const files = Array.from(e.target.files);
-      const validFiles = files.filter(file => file.size <= 20 * 1024 * 1024);
-      
+      const validFiles = files.filter((file) => file.size <= 20 * 1024 * 1024);
+
       if (validFiles.length !== files.length) {
         toast.error("Some files were larger than 20MB and were not included.");
       }
-      
+
       setSelectedFiles(validFiles);
       await uploadFiles(validFiles);
     }
@@ -59,15 +63,15 @@ export const ChatInput: FC<Props> = ({
     const uploadPromises = files.map(async (file) => {
       const formData = new FormData();
       formData.append("image", file);
-      
+
       try {
         const response = await fetch("/api/image/upload", {
           method: "POST",
           body: formData,
         });
-        
+
         if (!response.ok) throw new Error("Upload failed");
-        
+
         const data = await response.json();
         return data.url;
       } catch (error) {
@@ -75,7 +79,7 @@ export const ChatInput: FC<Props> = ({
         return null;
       }
     });
-    
+
     const uploadedUrls = (await Promise.all(uploadPromises)).filter(Boolean);
     setIsUploading(false);
     setContent((prev) => `${prev || ""} ${uploadedUrls.join(" ")}`);
@@ -87,7 +91,7 @@ export const ChatInput: FC<Props> = ({
       return;
     }
     onSend({ role: Role.USER, content });
-    setContent('');
+    setContent("");
   };
 
   const handleUploadClick = () => {
@@ -138,13 +142,16 @@ export const ChatInput: FC<Props> = ({
           />
           <button
             onClick={handleUploadClick}
-            className={`mr-2 h-8 w-8 cursor-pointer rounded-full border border-gray-400 bg-white text-black ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`mr-2 h-8 w-8 cursor-pointer rounded-full border border-gray-400 bg-white text-black ${isUploading ? "cursor-not-allowed opacity-50" : ""}`}
             data-tooltip-id="tooltip_chatinput"
             data-tooltip-content="Upload images"
             disabled={isUploading}
           >
             <div className="flex h-full w-full items-center justify-center">
-              <FontAwesomeIcon icon={isUploading ? faSpinner : faUpload} spin={isUploading} />
+              <FontAwesomeIcon
+                icon={isUploading ? faSpinner : faUpload}
+                spin={isUploading}
+              />
             </div>
           </button>
           <button
