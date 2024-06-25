@@ -45,6 +45,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB in bytes
+    if (Buffer.byteLength(image, 'base64') > MAX_FILE_SIZE) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Image size exceeds the 20MB limit",
+        },
+        { status: 400 },
+      );
+    }
+
     let imageBuffer = Buffer.from(image, "base64");
     if (shouldResize) {
       imageBuffer = await resizeImageForGptVision(
