@@ -266,7 +266,7 @@ const Dashboard: React.FC<DashboardParams> = ({
 
       // Remove this todo from the list of todos and optimistically update the UI
       const newTodos = todos?.filter((t) => t.id !== selectedTodo.id) ?? [];
-      newTodos.length ? onNewTodoSelected(newTodos[0]!) : resetMessages();
+      newTodos.length ? onNewTodoSelected(newTodos[0]) : resetMessages();
 
       await trpcClient.todos.archive.mutate({
         id: selectedTodo.id,
