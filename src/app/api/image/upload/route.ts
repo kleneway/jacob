@@ -46,14 +46,14 @@ export async function POST(req: NextRequest) {
     }
 
     const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB in bytes
-    if (Buffer.byteLength(image, 'base64') > MAX_FILE_SIZE) {
+    const imageSize = Buffer.byteLength(image, 'base64');
+    if (imageSize > MAX_FILE_SIZE) {
       return NextResponse.json(
         {
           success: false,
-          message: "Image size exceeds the 20MB limit. Please upload a smaller image.",
+          message: `Image size (${(imageSize / (1024 * 1024)).toFixed(2)}MB) exceeds the 20MB limit. Please upload a smaller image.`,
         },
-        { status: 400 },
-      );
+        { status: 400 });
     }
 
     let imageBuffer = Buffer.from(image, "base64");
@@ -74,14 +74,14 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("Error uploading image", error);
     let errorMessage = "An unexpected error occurred while uploading the image.";
+    if (error instanceof RangeError && error.message.includes("Maximum call stack size exceeded")) {
+      errorMessage = "The image file is too large to process. Please try a smaller image.";
+    }
     if (error instanceof Error) {
       errorMessage = error.message;
     }
     return NextResponse.json(
-      {
-        success: false,
-        message: errorMessage,
-      },
+      { success: false, errors: [errorMessage] },
       { status: 500 },
     );
   }
