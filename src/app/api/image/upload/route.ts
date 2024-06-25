@@ -34,6 +34,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const imageBuffer = Buffer.from(image, "base64");
+    if (imageBuffer.length > 20 * 1024 * 1024) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Image size exceeds 20MB limit",
+        },
+        { status: 400 },
+      );
+    }
+
     const verifiedImageType = imageType as IMAGE_TYPE;
     if (!imageType || !Object.values(IMAGE_TYPE).includes(verifiedImageType)) {
       return NextResponse.json(
@@ -45,15 +56,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    let imageBuffer = Buffer.from(image, "base64");
+    let resizedImageBuffer = imageBuffer;
     if (shouldResize) {
-      imageBuffer = await resizeImageForGptVision(
+      resizedImageBuffer = await resizeImageForGptVision(
         imageBuffer,
         verifiedImageType,
       );
     }
     const imagePath = await uploadToS3(
-      imageBuffer,
+      resizedImageBuffer,
       verifiedImageType,
       bucketName,
       imageName,
@@ -62,8 +73,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, url });
   } catch (error) {
     console.log("Error uploading image", error);
+    let errorMessage = "An unexpected error occurred while uploading the image";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
     return NextResponse.json(
-      { success: false, errors: [String(error)] },
+      { success: false, message: errorMessage },
       { status: 500 },
     );
   }
