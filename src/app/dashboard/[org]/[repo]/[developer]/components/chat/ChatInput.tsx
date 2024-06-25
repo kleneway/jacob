@@ -1,4 +1,4 @@
-import { faArrowUp, faUpload, faImage } from "@fortawesome/free-solid-svg-icons";
+import { faArrowUp, faUpload } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import {
@@ -24,9 +24,11 @@ export const ChatInput: FC<Props> = ({
   loading = false,
 }) => {
   const [content, setContent] = useState<string>();
-  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
-  const [showUploadedImages, setShowUploadedImages] = useState<boolean>(false);
+  const [showUploadedImages, setShowUploadedImages] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -40,15 +42,101 @@ export const ChatInput: FC<Props> = ({
     setContent(value);
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    setIsUploading(true);
+    const newUploadedImages: string[] = [];
+
+    for (const file of files) {
+      if (!file) {
+        console.error("File is undefined");
+        continue;
+      }
+
+      if (!['image/png', 'image/jpeg', 'image/jpg'].includes(file.type)) {
+        toast.error(`${file.name} is not a valid image type. Please upload PNG or JPEG files.`);
+        continue;
+      }
+
+      if (file.size > 20 * 1024 * 1024) {
+        toast.error(`${file.name} exceeds the 20MB size limit.`);
+        continue;
+      }
+
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = async () => {
+        const base64Image = reader.result as string;
+
+        try {
+          const response = await fetch("/api/image/upload", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              image: base64Image,
+              name: file.name,
+            }),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+          }
+
+          const data = await response.json();
+          newUploadedImages.push(data.url);
+          setUploadedImages((prev) => [...prev, data.url]);
+          setShowUploadedImages(true);
+        } catch (error) {
+          if (error instanceof Error) {
+            console.error("Error uploading file:", error.message);
+            toast.error(`Failed to upload ${file.name}: ${error.message}`);
+          } else {
+            console.error("Unknown error uploading file:", error);
+          }
+          toast.error(`Failed to upload ${file.name}`);
+        }
+      };
+    }
+    setUploadedImages((prev) => [...prev, ...newUploadedImages]);
+    setShowUploadedImages(true);
+    setIsUploading(false);
+    e.target.value = '';
+  };
+
   const handleSend = () => {
     if (!content) {
       alert("Please enter a message");
       return;
     }
-    onSend({ role: Role.USER, content, images: uploadedImages });
-    setContent("");
+    const messageContent = uploadedImages.length > 0
+      ? `${content}\n\nUploaded images:\n${uploadedImages.join('\n')}`
+      : content;
+    onSend({ role: Role.USER, content: messageContent });
+    setContent('');
     setUploadedImages([]);
+    setShowUploadedImages(false);
   };
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const renderUploadButton = () => (
+    <button
+      onClick={handleUploadClick}
+      className="mr-2 h-8 w-8 rounded-full border border-gray-400 bg-white text-black"
+      disabled={isUploading || isResponding}
+      data-tooltip-id="tooltip_upload"
+      data-tooltip-content="Upload images"
+    >
+      <FontAwesomeIcon icon={faUpload} className={isUploading ? "animate-spin" : ""} />
+    </button>
+  );
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -58,54 +146,12 @@ export const ChatInput: FC<Props> = ({
     }
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length === 0) return;
-
-    setIsUploading(true);
-    const newUploadedImages: string[] = [];
-
-    for (const file of files) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error(`${file.name} is too large. Max size is 5MB.`);
-        continue;
-      }
-
-      const formData = new FormData();
-      formData.append("file", file);
-
-      try {
-        const response = await fetch("/api/upload", {
-          method: "POST",
-          body: formData,
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        newUploadedImages.push(data.url);
-      } catch (error) {
-        console.error("Error uploading file:", error);
-        toast.error(`Failed to upload ${file.name}`);
-      }
-    }
-    setUploadedImages((prev) => [...prev, ...newUploadedImages]);
-    setShowUploadedImages(true);
-    setIsUploading(false);
-  };
-
   useEffect(() => {
     if (textareaRef?.current) {
       textareaRef.current.style.height = "inherit";
       textareaRef.current.style.height = `${textareaRef.current?.scrollHeight}px`;
     }
   }, [content]);
-
-  const toggleUploadedImages = () => {
-    setShowUploadedImages(!showUploadedImages);
-  };
 
   return (
     <div
@@ -122,46 +168,19 @@ export const ChatInput: FC<Props> = ({
         onKeyDown={handleKeyDown}
       />
       <div className="items-between flex w-full flex-row">
-        <p className="mt-1 text-xs text-gray-400">
+        <p className="mt-2 text-base text-white text-opacity-40">
           {content?.length ?? 0}/3000
         </p>
-        {uploadedImages.length > 0 && (
-          <div className="mt-2 flex items-center">
-            <button
-              onClick={toggleUploadedImages}
-              className="flex items-center text-sm text-blue-500 hover:text-blue-600"
-            >
-              <FontAwesomeIcon icon={faImage} className="mr-1" />
-              {uploadedImages.length} image{uploadedImages.length > 1 ? 's' : ''} uploaded
-            </button>
-          </div>
-        )}
-        {showUploadedImages && (
-          <div className="mt-2 flex flex-wrap">
-            {uploadedImages.map((url, index) => (
-              <img key={index} src={url} alt={`Uploaded ${index + 1}`} className="m-1 h-16 w-16 object-cover rounded" />
-            ))}
-          </div>
-        )}
         <div className="mt-2 flex w-full items-center justify-end">
-          {isUploading && <p className="mr-2 text-sm text-gray-400">Uploading...</p>}
-          {uploadedImages.length > 0 && <p className="mr-2 text-sm text-gray-400">{uploadedImages.length} image{uploadedImages.length > 1 ? 's' : ''} ready</p>}
           <input
             type="file"
-            id="image-upload"
-            accept="image/*"
-            multiple
+            ref={fileInputRef}
             onChange={handleImageUpload}
+            accept="image/png,image/jpeg"
+            multiple
             className="hidden"
           />
-          <label
-            htmlFor="image-upload"
-            className="mr-2 h-8 w-8 cursor-pointer rounded-full border border-gray-400 bg-white text-black flex items-center justify-center"
-            data-tooltip-id="tooltip_chatinput"
-            data-tooltip-content="Upload image"
-          >
-            <FontAwesomeIcon icon={faUpload} className={isUploading ? "animate-spin" : ""} />
-          </label>
+          {renderUploadButton()}
           <button
             onClick={handleSend}
             className="h-8 w-8 rounded-full border border-gray-400 bg-white text-black"
