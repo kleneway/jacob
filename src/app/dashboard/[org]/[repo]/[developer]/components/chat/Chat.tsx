@@ -1,6 +1,6 @@
 import { faArrowDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { type FC } from "react";
+import { type FC, type RefObject } from "react";
 import { type Message } from "~/types";
 import { ChatInput } from "./ChatInput";
 import { ChatLoader } from "./ChatLoader";
@@ -15,8 +15,8 @@ interface Props {
   onUpdateIssue: (messages: Message[]) => void;
   isResponding?: boolean;
   shouldHideLogo?: boolean;
-  messagesEndRef: React.RefObject<HTMLDivElement>;
-  sidebarRef: React.RefObject<HTMLDivElement>;
+  messagesEndRef: RefObject<HTMLDivElement>;
+  sidebarRef: RefObject<HTMLDivElement>;
   checkIfAtBottom: () => void;
   scrollToBottom: () => void;
   isAtBottom: boolean;
@@ -52,6 +52,7 @@ export const Chat: FC<Props> = ({
             onCreateNewTask={onCreateNewTask}
             onUpdateIssue={onUpdateIssue}
             loading={loading}
+            images={message.images}
           />
         </div>
       ))}
