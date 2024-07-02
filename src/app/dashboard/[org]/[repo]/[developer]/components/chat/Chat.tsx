@@ -21,7 +21,6 @@ interface Props {
   scrollToBottom: () => void;
   isAtBottom: boolean;
   images?: { url: string; alt: string }[];
-  images?: { url: string; alt: string }[];
 }
 
 export const Chat: FC<Props> = ({
@@ -50,12 +49,7 @@ export const Chat: FC<Props> = ({
       {messages.map((message, index) => (
         <div key={index} className="my-1 sm:my-2">
           <ChatMessage
-            messageHistory={messages}
-            message={message}
-            onCreateNewTask={onCreateNewTask}
-            onUpdateIssue={onUpdateIssue}
-            loading={loading}
-            images={images}
+            {...{ messageHistory: messages, message, onCreateNewTask, onUpdateIssue, loading, images }}
           />
         </div>
       ))}

@@ -116,5 +116,3 @@ export const ChatInput: FC<Props> = ({
     </div>
   );
 };
-
-
