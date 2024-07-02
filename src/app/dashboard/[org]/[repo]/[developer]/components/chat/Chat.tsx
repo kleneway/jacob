@@ -1,7 +1,7 @@
 import { faArrowDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { type FC, type RefObject, type UIEvent } from "react";
-import { type Message, type ImageType } from "~/types";
+import { type Message } from "~/types";
 import { ChatInput } from "./ChatInput";
 import { ChatLoader } from "./ChatLoader";
 import { ChatMessage } from "./ChatMessage";
@@ -20,6 +20,7 @@ interface Props {
   checkIfAtBottom: (event: UIEvent<HTMLDivElement>) => void;
   scrollToBottom: () => void;
   isAtBottom: boolean;
+  images?: { url: string; alt: string }[];
 }
 
 export const Chat: FC<Props> = ({
@@ -34,6 +35,7 @@ export const Chat: FC<Props> = ({
   checkIfAtBottom,
   scrollToBottom,
   isAtBottom,
+  images,
 }) => (
   <div
     className="space-between flex flex-col rounded-lg px-2 pb-8 sm:p-4"
@@ -52,7 +54,7 @@ export const Chat: FC<Props> = ({
             onCreateNewTask={onCreateNewTask}
             onUpdateIssue={onUpdateIssue}
             loading={loading}
-            images={message.images as ImageType[] | undefined}
+            images={images}
           />
         </div>
       ))}
