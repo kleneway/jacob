@@ -55,7 +55,6 @@ export const Chat: FC<Props> = ({
             onCreateNewTask={onCreateNewTask}
             onUpdateIssue={onUpdateIssue}
             loading={loading}
-            images={images}
           />
         </div>
       ))}
