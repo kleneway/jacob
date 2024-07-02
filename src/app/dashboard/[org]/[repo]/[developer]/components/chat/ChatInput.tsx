@@ -11,10 +11,10 @@ import {
 } from "react";
 import { toast } from "react-toastify";
 import { Tooltip } from "react-tooltip";
-import { type Message, Role } from "~/types";
+import { type Message, Role, type MessageWithImages } from "~/types";
 
 interface Props {
-  onSend: (message: Message) => void;
+  onSend: (message: MessageWithImages) => void;
   isResponding?: boolean;
   loading?: boolean;
 }
@@ -90,11 +90,12 @@ export const ChatInput: FC<Props> = ({
         <div className="mt-2 flex w-full items-center justify-end">
           <ImageUploader
             onUploadComplete={handleImageUpload}
-            className="mr-2 h-8 w-8 rounded-full border border-gray-400 bg-white text-black"
             data-tooltip-id="tooltip_chatinput"
             data-tooltip-content="Upload images"
             disabled={isResponding || loading}
-          />
+          >
+            <div className="mr-2 h-8 w-8 rounded-full border border-gray-400 bg-white text-black" />
+          </ImageUploader>
           <button
             onClick={handleSend}
             className="h-8 w-8 rounded-full border border-gray-400 bg-white text-black"
