@@ -89,7 +89,6 @@ export const ChatInput: FC<Props> = ({
         </p>
         <div className="mt-2 flex w-full items-center justify-end">
           <ImageUploader
-            disabled={isResponding || loading}
             onUploadComplete={handleImageUpload}
             data-tooltip-id="tooltip_chatinput"
             data-tooltip-content="Upload images"

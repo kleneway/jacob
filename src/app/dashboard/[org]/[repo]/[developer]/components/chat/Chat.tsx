@@ -49,7 +49,14 @@ export const Chat: FC<Props> = ({
       {messages.map((message, index) => (
         <div key={index} className="my-1 sm:my-2">
           <ChatMessage
-            {...{ messageHistory: messages, message, onCreateNewTask, onUpdateIssue, loading, images }}
+            {...{
+              messageHistory: messages,
+              message,
+              onCreateNewTask,
+              onUpdateIssue,
+              loading,
+              images,
+            }}
           />
         </div>
       ))}
