@@ -1,6 +1,6 @@
 import { faArrowDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { type FC, type RefObject } from "react";
+import { type FC, type RefObject, type UIEvent } from "react";
 import { type Message } from "~/types";
 import { ChatInput } from "./ChatInput";
 import { ChatLoader } from "./ChatLoader";
@@ -17,7 +17,7 @@ interface Props {
   shouldHideLogo?: boolean;
   messagesEndRef: RefObject<HTMLDivElement>;
   sidebarRef: RefObject<HTMLDivElement>;
-  checkIfAtBottom: () => void;
+  checkIfAtBottom: (event: UIEvent<HTMLDivElement>) => void;
   scrollToBottom: () => void;
   isAtBottom: boolean;
 }
@@ -42,7 +42,7 @@ export const Chat: FC<Props> = ({
     <div
       className="hide-scrollbar flex flex-1 flex-col overflow-y-auto"
       ref={sidebarRef}
-      onScroll={checkIfAtBottom}
+      onScroll={(event: UIEvent<HTMLDivElement>) => checkIfAtBottom(event)}
     >
       {messages.map((message, index) => (
         <div key={index} className="my-1 sm:my-2">
