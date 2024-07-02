@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { toast, ToastContent } from "react-toastify";
+import { toast, type ToastContent } from "react-toastify";
 
 interface ImageUploaderProps {
   onUploadComplete: (urls: string[]) => void;
