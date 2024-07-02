@@ -21,6 +21,7 @@ interface Props {
   scrollToBottom: () => void;
   isAtBottom: boolean;
   images?: { url: string; alt: string }[];
+  images?: { url: string; alt: string }[];
 }
 
 export const Chat: FC<Props> = ({
