@@ -51,8 +51,8 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
 
         if (!response.ok) throw new Error("Upload failed");
 
-        const data = await response.json();
-        newUrls.push(data.url as string);
+        const data: { url: string } = await response.json();
+        newUrls.push(data.url);
       }
 
       onUploadComplete(newUrls);
