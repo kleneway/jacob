@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const imageBuffer = Buffer.from(image, "base64");
+    let imageBuffer = Buffer.from(image, "base64");
     if (imageBuffer.length > 20 * 1024 * 1024) {
       return NextResponse.json(
         {
