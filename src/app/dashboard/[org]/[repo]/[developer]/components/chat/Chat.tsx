@@ -1,7 +1,7 @@
 import { faArrowDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { type FC, type RefObject, type UIEvent } from "react";
-import { type Message } from "~/types";
+import { type Message, type ImageType } from "~/types";
 import { ChatInput } from "./ChatInput";
 import { ChatLoader } from "./ChatLoader";
 import { ChatMessage } from "./ChatMessage";
@@ -52,7 +52,7 @@ export const Chat: FC<Props> = ({
             onCreateNewTask={onCreateNewTask}
             onUpdateIssue={onUpdateIssue}
             loading={loading}
-            images={message.images}
+            images={message.images as ImageType[] | undefined}
           />
         </div>
       ))}
