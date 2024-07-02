@@ -293,4 +293,28 @@ h1 {
   animation: fade-in 0.5s ease-in-out;
 }
 
+.image-upload-button {
+  @apply flex items-center justify-center h-8 w-8 rounded-full border border-gray-400 bg-white text-black transition-colors duration-200 ease-in-out;
+}
+
+.image-upload-button:hover {
+  @apply bg-gray-100;
+}
+
+.image-upload-button:disabled {
+  @apply opacity-50 cursor-not-allowed;
+}
+
+.image-upload-button-loading {
+  @apply animate-spin;
+}
+
+.uploaded-image-container {
+  @apply mt-2 flex flex-wrap gap-2;
+}
+
+.uploaded-image {
+  @apply max-w-xs max-h-32 object-cover rounded-md border border-gray-300;
+}
+
 @tailwind utilities;

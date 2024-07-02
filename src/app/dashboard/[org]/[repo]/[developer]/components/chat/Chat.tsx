@@ -1,6 +1,6 @@
 import { faArrowDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { type FC } from "react";
+import { type FC, type RefObject, type UIEvent } from "react";
 import { type Message } from "~/types";
 import { ChatInput } from "./ChatInput";
 import { ChatLoader } from "./ChatLoader";
@@ -15,11 +15,12 @@ interface Props {
   onUpdateIssue: (messages: Message[]) => void;
   isResponding?: boolean;
   shouldHideLogo?: boolean;
-  messagesEndRef: React.RefObject<HTMLDivElement>;
-  sidebarRef: React.RefObject<HTMLDivElement>;
-  checkIfAtBottom: () => void;
+  messagesEndRef: RefObject<HTMLDivElement>;
+  sidebarRef: RefObject<HTMLDivElement>;
+  checkIfAtBottom: (event: UIEvent<HTMLDivElement>) => void;
   scrollToBottom: () => void;
   isAtBottom: boolean;
+  images?: { url: string; alt: string }[];
 }
 
 export const Chat: FC<Props> = ({
@@ -34,6 +35,7 @@ export const Chat: FC<Props> = ({
   checkIfAtBottom,
   scrollToBottom,
   isAtBottom,
+  images,
 }) => (
   <div
     className="space-between flex flex-col rounded-lg px-2 pb-8 sm:p-4"
@@ -42,16 +44,19 @@ export const Chat: FC<Props> = ({
     <div
       className="hide-scrollbar flex flex-1 flex-col overflow-y-auto"
       ref={sidebarRef}
-      onScroll={checkIfAtBottom}
+      onScroll={(event: UIEvent<HTMLDivElement>) => checkIfAtBottom(event)}
     >
       {messages.map((message, index) => (
         <div key={index} className="my-1 sm:my-2">
           <ChatMessage
-            messageHistory={messages}
-            message={message}
-            onCreateNewTask={onCreateNewTask}
-            onUpdateIssue={onUpdateIssue}
-            loading={loading}
+            {...{
+              messageHistory: messages,
+              message,
+              onCreateNewTask,
+              onUpdateIssue,
+              loading,
+              images,
+            }}
           />
         </div>
       ))}
