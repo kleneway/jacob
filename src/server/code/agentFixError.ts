@@ -5,6 +5,7 @@ import { dedent } from "ts-dedent";
 import { getImages, getTypes } from "../analyze/sourceMap";
 import { traverseCodebase } from "../analyze/traverse";
 import {
+  getResearchByIssueId,
   type RepoSettings,
   type BaseEventData,
   extractIssueNumberFromBranchName,
@@ -71,8 +72,16 @@ export async function agentFixError(params: AgentFixErrorParams) {
   const styles = await getStyles(rootPath, repoSettings);
   const images = await getImages(rootPath, repoSettings);
 
-  // TODO: this is a temporary fix, need to figure out the right way to do research for a bugfix
-  const research = ""; // TODO: currently this is part of the GitHub issue, need to separate it out
+  let research = "";
+  if (issueNumber) {
+    const researchItems = await getResearchByIssueId(issueNumber);
+    research = researchItems
+      .map(
+        (item) =>
+          `### ${item.type} \n\n#### Question: ${item.question} \n\n${item.answer}`
+      )
+      .join("\n\n");
+  }
 
   const projectContext: ProjectContext = {
     repository,
