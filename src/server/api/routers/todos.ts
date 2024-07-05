@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { db } from "~/server/db/db";
 import { TodoStatus } from "~/server/db/enums";
+import { ResearchAgentActionType } from "~/server/agent/research";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { type Todo } from "./events";
 import { DEVELOPERS } from "~/data/developers";
@@ -51,15 +52,28 @@ export const todoRouter = createTRPCRouter({
     )
     .mutation(async ({ input }): Promise<Todo> => {
       const { projectId, description, name, status, issueId, branch } = input;
-      const newTodo = {
-        projectId,
-        description,
-        name,
-        status,
-        issueId,
-        branch,
-      };
-      const createdTodo = await db.todos.selectAll().insert(newTodo);
+      
+      let createdTodo: Todo;
+      
+      await db.$transaction(async (trx) => {
+        const newTodo = {
+          projectId,
+          description,
+          name,
+          status,
+          issueId,
+          branch,
+        };
+        createdTodo = await trx.todos.selectAll().insert(newTodo);
+        
+        if (issueId) {
+          await trx.research
+            .where({ issueId })
+            .where("type", "!=", ResearchAgentActionType.AskProjectOwner)
+            .update({ todoId: createdTodo.id });
+        }
+      });
+      
       return createdTodo;
     }),
 
