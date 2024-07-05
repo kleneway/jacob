@@ -145,5 +145,5 @@ export interface Research {
   type: ResearchAgentActionType;
   question: string;
   answer: string;
-  issueId: string;
+  issueId: number;
 }
