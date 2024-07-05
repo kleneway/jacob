@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import ChatComponent, { ChatComponentHandle } from "./components/chat";
+import ChatComponent, { type ChatComponentHandle } from "./components/chat";
 import ChatHeader from "./components/chat/ChatHeader";
 
 import Workspace from "./components/workspace";
-import { Message, Role, SidebarIcon } from "~/types";
+import { type Message, Role, SidebarIcon } from "~/types";
 import { TaskStatus } from "~/server/db/enums";
 
 import type { Todo, Task } from "~/server/api/routers/events";
@@ -42,9 +42,7 @@ const Dashboard: React.FC<DashboardParams> = ({
     SidebarIcon.Plan,
   );
   const [tasks, setTasks] = useState<Task[]>(_tasks);
-  const [selectedTask, setSelectedTask] = useState<Task | undefined>(
-    tasks[0],
-  );
+  const [selectedTask, setSelectedTask] = useState<Task | undefined>(tasks[0]);
 
   const [selectedTodo, setSelectedTodo] = useState<Todo | undefined>(undefined);
 
@@ -121,7 +119,9 @@ const Dashboard: React.FC<DashboardParams> = ({
           if (payload.type === TaskType.code) {
             // Loop throught the code files and update the task with the new code if it exists, add it if it doesn't
             const codeFile = payload;
-            const newCodeFiles = newTask.codeFiles ? [...newTask.codeFiles] : [];
+            const newCodeFiles = newTask.codeFiles
+              ? [...newTask.codeFiles]
+              : [];
             const index = newCodeFiles.findIndex(
               (c) => c.fileName === codeFile.fileName,
             );
@@ -134,11 +134,15 @@ const Dashboard: React.FC<DashboardParams> = ({
           }
           if (payload.type === TaskType.command) {
             // add the command to the task.commands array
-            newTask.commands = newTask.commands ? [...newTask.commands, payload] : [payload];
+            newTask.commands = newTask.commands
+              ? [...newTask.commands, payload]
+              : [payload];
           }
           if (payload.type === TaskType.prompt) {
             // add the prompt to the task.prompts array
-            newTask.prompts = newTask.prompts ? [...newTask.prompts, payload] : [payload];
+            newTask.prompts = newTask.prompts
+              ? [...newTask.prompts, payload]
+              : [payload];
           }
 
           // update the task in the tasks array
@@ -265,8 +269,10 @@ const Dashboard: React.FC<DashboardParams> = ({
       }
 
       // Remove this todo from the list of todos and optimistically update the UI
-      const newTodos = todos ? todos.filter((t) => t.id !== selectedTodo.id) : [];
-      newTodos.length ? onNewTodoSelected(newTodos[0]!) : resetMessages();
+      const newTodos = todos
+        ? todos.filter((t) => t.id !== selectedTodo.id)
+        : [];
+      newTodos.length ? onNewTodoSelected(newTodos[0]) : resetMessages();
 
       await trpcClient.todos.archive.mutate({
         id: selectedTodo.id,
@@ -283,11 +289,9 @@ const Dashboard: React.FC<DashboardParams> = ({
 
   //** End Task */
 
-  const tasksInProgressOrDone =
-    tasks.filter(
-      (t) =>
-        t.status === TaskStatus.IN_PROGRESS || t.status === TaskStatus.DONE,
-    );
+  const tasksInProgressOrDone = tasks.filter(
+    (t) => t.status === TaskStatus.IN_PROGRESS || t.status === TaskStatus.DONE,
+  );
 
   return (
     <div className="h-screen w-full bg-gray-800 text-left ">
@@ -322,13 +326,11 @@ const Dashboard: React.FC<DashboardParams> = ({
           className={`col-span-6 bg-gray-900/90 ${tasksInProgressOrDone.length ? "flex" : "hidden"}`}
         >
           <Workspace
-            tasks={
-              tasks.filter(
-                (t) =>
-                  t.status === TaskStatus.IN_PROGRESS ||
-                  t.status === TaskStatus.DONE,
-              )
-            }
+            tasks={tasks.filter(
+              (t) =>
+                t.status === TaskStatus.IN_PROGRESS ||
+                t.status === TaskStatus.DONE,
+            )}
             selectedIcon={selectedIcon}
             selectedTask={selectedTask}
             setSelectedIcon={setSelectedIcon}

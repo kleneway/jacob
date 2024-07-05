@@ -11,12 +11,10 @@ export type SidebarIcon = string;
 
 export type Role = string;
 
-export enum SpecialPhrases {
-  // Define enum values here
-}
+export enum SpecialPhrases {}
+// Define enum values here
 
-export enum Mode {
-  // Define enum values here
-}
+export enum Mode {}
+// Define enum values here
 
 export { ResearchAgentActionType };
