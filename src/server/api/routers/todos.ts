@@ -52,7 +52,7 @@ export const todoRouter = createTRPCRouter({
     )
     .mutation(async ({ input }): Promise<Todo> => {
       const { projectId, description, name, status, issueId, branch } = input;
-      
+
       let existingResearch = null;
       if (issueId) {
         existingResearch = await db.research.where({ issueId }).first();
@@ -69,7 +69,9 @@ export const todoRouter = createTRPCRouter({
         });
 
         if (existingResearch) {
-          await trx.research.find(existingResearch.id).update({ todoId: createdTodo.id });
+          await trx.research
+            .find(existingResearch.id)
+            .update({ todoId: createdTodo.id });
         } else if (issueId) {
           await trx.research.insert({
             todoId: createdTodo.id,

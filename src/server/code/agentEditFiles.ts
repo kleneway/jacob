@@ -282,3 +282,64 @@ function App() {
 }
 
 export default App;
+</file_content>
+`;
+
+    // Ensure the directory exists
+    await fs.promises.mkdir(dirPath, { recursive: true });
+
+    // Write the file content
+    await fs.promises.writeFile(fullFilePath, removeLineNumbers(patch));
+
+    files.push({ fileName: path.basename(filePath), filePath, codeBlock: patch });
+  } catch (error) {
+    console.error(`Error creating new file: ${error}`);
+  }
+  return files;
+}
+
+async function updateExistingFile(
+  rootPath: string,
+  filePath: string,
+  patch: string,
+): Promise<FileContent[]> {
+  const files: FileContent[] = [];
+  try {
+    const fullFilePath = path.join(rootPath, filePath);
+    const originalContent = await fs.promises.readFile(fullFilePath, "utf8");
+    const updatedContent = applyPatch(originalContent, patch);
+    await fs.promises.writeFile(fullFilePath, updatedContent);
+    files.push({
+      fileName: path.basename(filePath),
+      filePath,
+      codeBlock: updatedContent,
+    });
+  } catch (error) {
+    console.error(`Error updating existing file: ${error}`);
+  }
+  return files;
+}
+
+function applyPatch(originalContent: string, patch: string): string {
+  const lines = originalContent.split("\n");
+  const patchLines = patch.split("\n");
+  let currentLine = 0;
+
+  for (const patchLine of patchLines) {
+    if (patchLine.startsWith("@@")) {
+      const match = patchLine.match(/@@ -(\d+),?(\d+)? \+(\d+),?(\d+)? @@/);
+      if (match) {
+        currentLine = parseInt(match[3]) - 1;
+      }
+    } else if (patchLine.startsWith("+")) {
+      lines.splice(currentLine, 0, patchLine.slice(1));
+      currentLine++;
+    } else if (patchLine.startsWith("-")) {
+      lines.splice(currentLine, 1);
+    } else if (!patchLine.startsWith("\\")) {
+      currentLine++;
+    }
+  }
+
+  return lines.join("\n");
+}

@@ -91,7 +91,7 @@ const researchTools: OpenAI.ChatCompletionTool[] = [
   },
 ];
 
-export const researchIssue = async function(
+export const researchIssue = async function (
   githubIssue: string,
   sourceMap: string,
   rootDir: string,
@@ -168,7 +168,7 @@ export const researchIssue = async function(
           type: functionName,
           question: args.query,
           answer: functionResponse,
-          issueId: parseInt(githubIssue.split('/').pop() || '0', 10),
+          issueId: parseInt(githubIssue.split("/").pop() || "0", 10),
         });
         if (functionName !== ResearchAgentActionType.ResearchComplete) {
           allInfoGathered = false;
@@ -178,9 +178,12 @@ export const researchIssue = async function(
       if (!allInfoGathered) {
         const updatedPrompt = dedent`
             ### Gathered Information:
-            ${researchResults.map(r => `### ${r.type} \n\n#### Question: ${r.question} \n\n${r.answer}`).join("\n")}
+            ${researchResults.map((r) => `### ${r.type} \n\n#### Question: ${r.question} \n\n${r.answer}`).join("\n")}
             ### Questions for Project Owner:
-            ${researchResults.filter(r => r.type === ResearchAgentActionType.AskProjectOwner).map(r => r.question).join("\n")}
+            ${researchResults
+              .filter((r) => r.type === ResearchAgentActionType.AskProjectOwner)
+              .map((r) => r.question)
+              .join("\n")}
             ### Missing Information:
             Reflect on the gathered information and specify what is still needed to fully address the issue and why it is needed.
             ### Plan Information Gathering:
