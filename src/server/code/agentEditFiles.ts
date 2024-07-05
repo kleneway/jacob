@@ -54,11 +54,13 @@ export async function agentEditFiles(params: EditFilesParams) {
   // When we start processing PRs, need to handle appending additionalComments
   const issueBody = issue.body ? `\n${issue.body}` : "";
   const issueText = `${issue.title}${issueBody}`;
-  const researchItems = await db.research.where({ issueId: issue.number }).all();
+  const researchItems = await db.research
+    .where({ issueId: issue.number })
+    .all();
   const research = researchItems
     .map(
       (item) =>
-        `### ${item.type}\n\n#### Question: ${item.question}\n\n#### Answer: ${item.answer}`
+        `### ${item.type}\n\n#### Question: ${item.question}\n\n#### Answer: ${item.answer}`,
     )
     .join("\n\n");
 
@@ -282,7 +284,7 @@ function App() {
 }
 
 export default App;
-</file_content>`
+</file_content>`;
 
     // Ensure the directory exists
     await fs.promises.mkdir(dirPath, { recursive: true });
@@ -294,7 +296,9 @@ export default App;
     );
 
     // Extract the content from the LLM response
-    const contentMatch = fileContent.match(/<file_content>([\s\S]*)<\/file_content>/);
+    const contentMatch = fileContent.match(
+      /<file_content>([\s\S]*)<\/file_content>/,
+    );
     const content = contentMatch ? contentMatch[1].trim() : "";
 
     if (content) {
