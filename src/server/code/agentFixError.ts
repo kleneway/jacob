@@ -5,6 +5,7 @@ import { dedent } from "ts-dedent";
 import { getImages, getTypes } from "../analyze/sourceMap";
 import { traverseCodebase } from "../analyze/traverse";
 import {
+  db,
   type RepoSettings,
   type BaseEventData,
   extractIssueNumberFromBranchName,
@@ -62,8 +63,6 @@ export async function agentFixError(params: AgentFixErrorParams) {
 
   const sourceMap = traverseCodebase(rootPath)?.join("\n") ?? "";
 
-  //   const research = await researchIssue(issueText, sourceMap, rootPath);
-
   const types = getTypes(rootPath, repoSettings);
   const packages = Object.keys(repoSettings?.packageDependencies ?? {}).join(
     "\n",
@@ -71,8 +70,12 @@ export async function agentFixError(params: AgentFixErrorParams) {
   const styles = await getStyles(rootPath, repoSettings);
   const images = await getImages(rootPath, repoSettings);
 
-  // TODO: this is a temporary fix, need to figure out the right way to do research for a bugfix
-  const research = ""; // TODO: currently this is part of the GitHub issue, need to separate it out
+  const researchItems = await db.research.where({ issueId: issueNumber }).all();
+  const research = researchItems
+    .map(
+      (item) => `### ${item.type}\n\n#### Question: ${item.question}\n\n#### Answer: ${item.answer}`
+    )
+    .join("\n\n");
 
   const projectContext: ProjectContext = {
     repository,
