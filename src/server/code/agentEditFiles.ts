@@ -1,6 +1,7 @@
 import { type Issue, type Repository } from "@octokit/webhooks-types";
 import fs from "fs";
 import { getTypes, getImages } from "../analyze/sourceMap";
+import { db } from "~/server/db/db";
 import {
   parseTemplate,
   type RepoSettings,
@@ -53,12 +54,15 @@ export async function agentEditFiles(params: EditFilesParams) {
   // When we start processing PRs, need to handle appending additionalComments
   const issueBody = issue.body ? `\n${issue.body}` : "";
   const issueText = `${issue.title}${issueBody}`;
-  //   const research = await researchIssue(
-  //     issueText,
-  //     sourceMapOrFileList,
-  //     rootPath,
-  //   );
-  const research = ""; // TODO: currently this is part of the GitHub issue, need to separate it out
+  const researchItems = await db.research.where({ issueId: issue.number }).all();
+  const research = researchItems
+    .map(
+      (item) =>
+        `### ${item.type}\n\n#### Question: ${item.question}\n\n#### Answer: ${item.answer}`
+    )
+    .join("\n\n");
+
+  console.log("Retrieved research:", research);
   let codePatch = "";
   const maxPlanIterations = 3;
   const maxSteps = 10;
@@ -278,136 +282,3 @@ function App() {
 }
 
 export default App;
-</file_content>`;
-
-    const systemPrompt = `You are an expert code creator. Your task is to generate the complete file content based on the given patch for a new file. Make sure to remove any diff-specific syntax and provide only the actual file content. Your response must be the complete file content surrounded by <file_content> tags, with no additional commentary or code blocks.`;
-
-    // Call the LLM to generate the file content
-    const rawFileContent = await sendSelfConsistencyChainOfThoughtGptRequest(
-      userPrompt,
-      systemPrompt,
-    );
-
-    if (rawFileContent) {
-      // Extract content between <file_content> tags
-      const contentMatch = rawFileContent.match(
-        /<file_content>([\s\S]*)<\/file_content>/,
-      );
-      if (contentMatch?.[1]) {
-        const fileContent = contentMatch[1].trim();
-
-        // Create directory if it doesn't exist
-        if (!fs.existsSync(dirPath)) {
-          fs.mkdirSync(dirPath, { recursive: true });
-        }
-
-        // Write the new file
-        fs.writeFileSync(fullFilePath, fileContent, "utf-8");
-        console.log(`Successfully created new file ${filePath}`);
-
-        files.push({
-          fileName: path.basename(filePath),
-          filePath,
-          codeBlock: fileContent,
-        });
-      } else {
-        throw new Error(
-          "LLM response did not contain properly formatted file content",
-        );
-      }
-    } else {
-      throw new Error(`Failed to generate content for new file ${filePath}`);
-    }
-  } catch (error) {
-    console.error(`Error creating new file ${filePath}:`, error);
-  }
-
-  return files;
-}
-async function updateExistingFile(
-  rootPath: string,
-  filePath: string,
-  patch: string,
-): Promise<FileContent[]> {
-  const files: FileContent[] = [];
-  try {
-    // First, check to see if the file exists
-    const fullFilePath = path.join(rootPath, filePath);
-    if (!fs.existsSync(fullFilePath)) {
-      console.error(`File ${filePath} does not exist`);
-      return files;
-    }
-    // Read the existing file content
-    const existingContent = fs.readFileSync(fullFilePath, "utf-8");
-    const numberedContent = addLineNumbers(existingContent);
-
-    // Prepare the prompt for the LLM
-    const userPrompt = `
-I have an existing file with the following content (line numbers added for reference):
-
-${numberedContent}
-
-I want to apply the following patch to this file:
-
-${patch}
-
-Please provide the updated file content after applying the patch. Your response should:
-1. Include the entire file content, not just the changed parts.
-2. Maintain the original line numbers.
-3. Be surrounded by <file_content> tags.
-4. Contain no additional commentary, explanations, or code blocks.
-
-Here's an example of how your response should be formatted:
-
-<file_content>
-1| import React from 'react';
-2| 
-3| function App() {
-4|   return (
-5|     <div>
-6|       <h1>Hello, World!</h1>
-7|     </div>
-8|   );
-9| }
-10| 
-11| export default App;
-</file_content>`;
-
-    const systemPrompt = `You are an expert code editor. Your task is to apply the given patch to the existing file content and return the entire updated file content, including line numbers. Make sure to handle line numbers correctly, even if they are inconsistent in the patch. If a hunk in the patch cannot be applied, skip it and continue with the next one. Your response must be the complete file content surrounded by <file_content> tags, with no additional commentary or code blocks.`;
-
-    // Call the LLM to apply the patch
-    const rawUpdatedContent = await sendSelfConsistencyChainOfThoughtGptRequest(
-      userPrompt,
-      systemPrompt,
-    );
-
-    if (rawUpdatedContent) {
-      // Extract content between <file_content> tags
-      const contentMatch = rawUpdatedContent.match(
-        /<file_content>([\s\S]*)<\/file_content>/,
-      );
-      if (contentMatch?.[1]) {
-        const numberedUpdatedContent = contentMatch[1].trim();
-        const updatedContent = removeLineNumbers(numberedUpdatedContent);
-
-        fs.writeFileSync(fullFilePath, updatedContent, "utf-8");
-        console.log(`Successfully updated ${filePath}`);
-        files.push({
-          fileName: path.basename(filePath),
-          filePath,
-          codeBlock: updatedContent,
-        });
-      } else {
-        throw new Error(
-          "LLM response did not contain properly formatted file content",
-        );
-      }
-    } else {
-      throw new Error(`Failed to apply patch to ${filePath}`);
-    }
-  } catch (error) {
-    console.error(`Error processing ${filePath}:`, error);
-  }
-
-  return files;
-}
