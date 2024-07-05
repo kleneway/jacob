@@ -1,6 +1,7 @@
 import type OpenAI from "openai";
 import dedent from "ts-dedent";
 import {
+  type Research,
   type Model,
   sendGptRequest,
   sendGptToolRequest,
@@ -90,8 +91,13 @@ export const researchIssue = async function (
   rootDir: string,
   maxLoops = 3,
   model: Model = "gpt-4-0125-preview",
-): Promise<string> {
+): Promise<Research[]> {
   console.log("Researching issue...");
+  //  - ResearchInternet: Search the internet for specific details if there are unique aspects that need further understanding.
+  const gatheredInformation: Research[] = [];
+  const questionsForProjectOwner: string[] = [];
+  let loops = 0;
+
   const researchTemplateParams = {
     githubIssue,
     sourceMap,
@@ -114,9 +120,6 @@ export const researchIssue = async function (
   ];
 
   let allInfoGathered = false;
-  const gatheredInformation: string[] = [];
-  const questionsForProjectOwner: string[] = [];
-  let loops = 0;
 
   while (!allInfoGathered && loops < maxLoops) {
     loops++;
@@ -161,9 +164,16 @@ export const researchIssue = async function (
         if (functionName === ResearchAgentActionType.AskProjectOwner) {
           questionsForProjectOwner.push(args.query);
         } else {
-          gatheredInformation.push(
-            `### ${functionName} \n\n#### Question: ${args.query} \n\n${functionResponse}`,
-          );
+          const issueId = githubIssue.split('/').pop();
+          if (!issueId || isNaN(parseInt(issueId))) {
+            throw new Error(`Invalid GitHub issue URL: ${githubIssue}`);
+          }
+          gatheredInformation.push({
+            type: functionName,
+            question: args.query,
+            answer: functionResponse,
+            issueId: parseInt(issueId),
+          });
         }
         allInfoGathered = false;
       }
@@ -192,7 +202,7 @@ export const researchIssue = async function (
   if (loops >= maxLoops) {
     console.log("Max loops reached, exiting loop.");
   }
-  return `## Research: ${gatheredInformation.join("\n")} \n\n## Questions for Project Owner: \n\n [ ] ${questionsForProjectOwner.join("\n [ ] ")}`;
+  return gatheredInformation.filter(info => info.type !== ResearchAgentActionType.AskProjectOwner);
 };
 
 async function callFunction(
