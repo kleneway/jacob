@@ -1,4 +1,4 @@
-import { type ResearchAgentActionType } from "./server/agent/research";
+import { ResearchAgentActionType } from "./server/db/enums";
 
 export interface Research {
   type: ResearchAgentActionType;
