@@ -168,7 +168,7 @@ export const researchIssue = async function (
           type: functionName,
           question: args.query,
           answer: functionResponse,
-          issueId: githubIssue.split('/').pop() || '',
+          issueId: githubIssue.split("/").pop() || "",
         });
         if (functionName !== ResearchAgentActionType.ResearchComplete) {
         }
@@ -178,7 +178,7 @@ export const researchIssue = async function (
       if (!allInfoGathered) {
         const updatedPrompt = dedent`
             ### Gathered Information:
-            ${researchResults.map(r => `### ${r.type} \n\n#### Question: ${r.question} \n\n${r.answer}`).join("\n")}
+            ${researchResults.map((r) => `### ${r.type} \n\n#### Question: ${r.question} \n\n${r.answer}`).join("\n")}
             ### Missing Information:
             Reflect on the gathered information and specify what is still needed to fully address the issue and why it is needed.
             ### Plan Information Gathering:

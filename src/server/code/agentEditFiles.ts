@@ -282,3 +282,82 @@ function App() {
 }
 
 export default App;
+</file_content>`
+
+    // Ensure the directory exists
+    await fs.promises.mkdir(dirPath, { recursive: true });
+
+    // Use the LLM to generate the complete file content
+    const fileContent = await sendSelfConsistencyChainOfThoughtGptRequest(
+      userPrompt,
+      "You are a helpful assistant that creates new files based on code patches.",
+    );
+
+    // Extract the content from the LLM response
+    const contentMatch = fileContent.match(/<file_content>([\s\S]*)<\/file_content>/);
+    const content = contentMatch ? contentMatch[1].trim() : "";
+
+    if (content) {
+      await fs.promises.writeFile(fullFilePath, content, "utf8");
+      files.push({
+        fileName: path.basename(filePath),
+        filePath,
+        codeBlock: content,
+      });
+    } else {
+      console.error("Failed to generate file content from the patch.");
+    }
+  } catch (error) {
+    console.error(`Error creating new file ${filePath}:`, error);
+  }
+  return files;
+}
+
+async function updateExistingFile(
+  rootPath: string,
+  filePath: string,
+  patch: string,
+): Promise<FileContent[]> {
+  const files: FileContent[] = [];
+  try {
+    const fullFilePath = path.join(rootPath, filePath);
+    let content = await fs.promises.readFile(fullFilePath, "utf8");
+
+    // Apply the patch
+    content = applyPatch(content, patch);
+
+    await fs.promises.writeFile(fullFilePath, content, "utf8");
+    files.push({
+      fileName: path.basename(filePath),
+      filePath,
+      codeBlock: content,
+    });
+  } catch (error) {
+    console.error(`Error updating file ${filePath}:`, error);
+  }
+  return files;
+}
+
+function applyPatch(originalContent: string, patch: string): string {
+  const lines = originalContent.split("\n");
+  const patchLines = patch.split("\n");
+  let lineNumber = 0;
+
+  for (const patchLine of patchLines) {
+    if (patchLine.startsWith("@@")) {
+      const match = patchLine.match(/@@ -(\d+),?(\d+)? \+(\d+),?(\d+)? @@/);
+      if (match) {
+        lineNumber = parseInt(match[3]) - 1;
+      }
+    } else if (patchLine.startsWith("+")) {
+      lines.splice(lineNumber, 0, patchLine.slice(1));
+      lineNumber++;
+    } else if (patchLine.startsWith("-")) {
+      lines.splice(lineNumber, 1);
+    } else {
+      lineNumber++;
+    }
+  }
+
+  return lines.join("\n");
+}

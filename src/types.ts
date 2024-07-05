@@ -1,4 +1,4 @@
-import { ResearchAgentActionType } from "./server/agent/research";
+import { type ResearchAgentActionType } from "./server/agent/research";
 
 export interface Research {
   type: ResearchAgentActionType;

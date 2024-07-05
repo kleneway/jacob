@@ -73,7 +73,8 @@ export async function agentFixError(params: AgentFixErrorParams) {
   const researchItems = await db.research.where({ issueId: issueNumber }).all();
   const research = researchItems
     .map(
-      (item) => `### ${item.type}\n\n#### Question: ${item.question}\n\n#### Answer: ${item.answer}`
+      (item) =>
+        `### ${item.type}\n\n#### Question: ${item.question}\n\n#### Answer: ${item.answer}`,
     )
     .join("\n\n");
 

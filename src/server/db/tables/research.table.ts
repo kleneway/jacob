@@ -9,7 +9,7 @@ export class ResearchTable extends BaseTable {
     issueId: t.integer(),
     type: t.enum(
       "research_agent_action_type",
-      Object.values(ResearchAgentActionType)
+      Object.values(ResearchAgentActionType),
     ),
     question: t.text(),
     answer: t.text(),

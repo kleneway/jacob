@@ -60,25 +60,27 @@ export const todoRouter = createTRPCRouter({
         issueId,
         branch,
       };
-      
+
       let existingResearch = null;
       if (issueId) {
         existingResearch = await db.research.where({ issueId }).first();
       }
-      
+
       const createdTodo = await db.$transaction(async (trx) => {
         const todo = await trx.todos.selectAll().insert(newTodo);
-        
+
         if (existingResearch) {
           await trx.research.where({ issueId }).update({ todoId: todo.id });
         } else if (issueId) {
           const research = await researchIssue(issueId.toString(), "", "");
-          await trx.research.insert(research.map(r => ({ ...r, todoId: todo.id })));
+          await trx.research.insert(
+            research.map((r) => ({ ...r, todoId: todo.id })),
+          );
         }
-        
+
         return todo;
       });
-      
+
       return createdTodo;
     }),
 
