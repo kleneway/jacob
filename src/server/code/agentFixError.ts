@@ -13,6 +13,7 @@ import {
 import { checkAndCommit } from "./checkAndCommit";
 import { addCommentToIssue, getIssue } from "../github/issue";
 import { fixError, type ProjectContext } from "~/server/agent/bugfix";
+import { db } from "~/server/db/db";
 
 export type PullRequest =
   Endpoints["GET /repos/{owner}/{repo}/pulls/{pull_number}"]["response"]["data"];
@@ -71,8 +72,13 @@ export async function agentFixError(params: AgentFixErrorParams) {
   const styles = await getStyles(rootPath, repoSettings);
   const images = await getImages(rootPath, repoSettings);
 
-  // TODO: this is a temporary fix, need to figure out the right way to do research for a bugfix
-  const research = ""; // TODO: currently this is part of the GitHub issue, need to separate it out
+  const researchData = await db.research.where({ issueId: issueNumber }).all();
+  const research = researchData
+    .map(
+      (item) =>
+        `### ${item.type}\n\n#### Question: ${item.question}\n\n${item.answer}`
+    )
+    .join("\n\n");
 
   const projectContext: ProjectContext = {
     repository,
