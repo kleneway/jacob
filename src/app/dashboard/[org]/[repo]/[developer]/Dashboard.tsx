@@ -9,7 +9,7 @@ import { type Message, Role, SidebarIcon } from "~/types";
 import { TaskStatus } from "~/server/db/enums";
 
 import type { Todo, Task } from "~/server/api/routers/events";
-import { api } from "~/utils/api";
+import { api } from "~/trpc/react";
 import { trpcClient } from "~/trpc/client";
 import { DEVELOPERS } from "~/data/developers";
 import { TaskType } from "~/server/db/enums";
