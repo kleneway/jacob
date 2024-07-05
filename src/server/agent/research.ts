@@ -15,6 +15,13 @@ export enum ResearchAgentActionType {
   ResearchComplete = "ResearchComplete",
 }
 
+export interface Research {
+  type: ResearchAgentActionType;
+  question: string;
+  answer: string;
+  issueId: string;
+}
+
 const researchTools: OpenAI.ChatCompletionTool[] = [
   {
     type: "function",
@@ -90,7 +97,7 @@ export const researchIssue = async function (
   rootDir: string,
   maxLoops = 3,
   model: Model = "gpt-4-0125-preview",
-): Promise<string> {
+): Promise<Research[]> {
   console.log("Researching issue...");
   const researchTemplateParams = {
     githubIssue,
@@ -114,8 +121,7 @@ export const researchIssue = async function (
   ];
 
   let allInfoGathered = false;
-  const gatheredInformation: string[] = [];
-  const questionsForProjectOwner: string[] = [];
+  const researchResults: Research[] = [];
   let loops = 0;
 
   while (!allInfoGathered && loops < maxLoops) {
@@ -158,12 +164,13 @@ export const researchIssue = async function (
           sourceMap,
           rootDir,
         );
-        if (functionName === ResearchAgentActionType.AskProjectOwner) {
-          questionsForProjectOwner.push(args.query);
-        } else {
-          gatheredInformation.push(
-            `### ${functionName} \n\n#### Question: ${args.query} \n\n${functionResponse}`,
-          );
+        researchResults.push({
+          type: functionName,
+          question: args.query,
+          answer: functionResponse,
+          issueId: githubIssue.split('/').pop() || '',
+        });
+        if (functionName !== ResearchAgentActionType.ResearchComplete) {
         }
         allInfoGathered = false;
       }
@@ -171,9 +178,7 @@ export const researchIssue = async function (
       if (!allInfoGathered) {
         const updatedPrompt = dedent`
             ### Gathered Information:
-            ${gatheredInformation.join("\n")}
-            ### Questions for Project Owner:
-            ${questionsForProjectOwner.join("\n")}
+            ${researchResults.map(r => `### ${r.type} \n\n#### Question: ${r.question} \n\n${r.answer}`).join("\n")}
             ### Missing Information:
             Reflect on the gathered information and specify what is still needed to fully address the issue and why it is needed.
             ### Plan Information Gathering:
@@ -192,7 +197,7 @@ export const researchIssue = async function (
   if (loops >= maxLoops) {
     console.log("Max loops reached, exiting loop.");
   }
-  return `## Research: ${gatheredInformation.join("\n")} \n\n## Questions for Project Owner: \n\n [ ] ${questionsForProjectOwner.join("\n [ ] ")}`;
+  return researchResults;
 };
 
 async function callFunction(
