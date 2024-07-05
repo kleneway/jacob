@@ -285,3 +285,76 @@ function App() {
 }
 
 export default App;
+</file_content>`;
+
+    // Call the LLM to get the file content
+    const response = await sendSelfConsistencyChainOfThoughtGptRequest(userPrompt);
+
+    // Extract the file content from the LLM response
+    const fileContentMatch = response.match(/<file_content>([\s\S]*?)<\/file_content>/);
+    if (fileContentMatch && fileContentMatch[1]) {
+      const fileContent = fileContentMatch[1].trim();
+
+      // Ensure the directory exists
+      await fs.promises.mkdir(dirPath, { recursive: true });
+
+      // Write the file content
+      await fs.promises.writeFile(fullFilePath, fileContent);
+
+      files.push({
+        fileName: path.basename(filePath),
+        filePath,
+        codeBlock: fileContent,
+      });
+
+      console.log(`Created new file: ${fullFilePath}`);
+    } else {
+      console.error("Failed to extract file content from LLM response");
+    }
+  } catch (error) {
+    console.error(`Error creating new file: ${error}`);
+  }
+
+  return files;
+}
+
+async function updateExistingFile(
+  rootPath: string,
+  filePath: string,
+  patch: string,
+): Promise<FileContent[]> {
+  const files: FileContent[] = [];
+  try {
+    const fullFilePath = path.join(rootPath, filePath);
+    const originalContent = await fs.promises.readFile(fullFilePath, "utf8");
+
+    // Prepare the prompt for the LLM
+    const userPrompt = `
+I have an existing file with the following content:
+
+${originalContent}
+
+I want to apply the following patch to this file:
+
+${patch}
+
+Please provide the updated file content after applying the patch. Your response should:
+1. Include the entire file content, not just the changed parts.
+2. Remove any diff-specific syntax (like +, -, @@ lines).
+3. Be surrounded by <file_content> tags.
+4. Contain no additional commentary, explanations, or code blocks.
+
+Here's an example of how your response should be formatted:
+
+<file_content>
+import React from 'react';
+
+function App() {
+  return (
+    <div>
+      <h1>Hello, Updated World!</h1>
+    </div>
+  );
+}
+
+export default App;

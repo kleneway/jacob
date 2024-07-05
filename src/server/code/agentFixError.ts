@@ -78,7 +78,7 @@ export async function agentFixError(params: AgentFixErrorParams) {
     research = researchItems
       .map(
         (item) =>
-          `### ${item.type} \n\n#### Question: ${item.question} \n\n${item.answer}`
+          `### ${item.type} \n\n#### Question: ${item.question} \n\n${item.answer}`,
       )
       .join("\n\n");
   }

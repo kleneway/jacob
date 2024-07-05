@@ -52,9 +52,9 @@ export const todoRouter = createTRPCRouter({
     )
     .mutation(async ({ input }): Promise<Todo> => {
       const { projectId, description, name, status, issueId, branch } = input;
-      
+
       let createdTodo: Todo;
-      
+
       await db.$transaction(async (trx) => {
         const newTodo = {
           projectId,
@@ -65,7 +65,7 @@ export const todoRouter = createTRPCRouter({
           branch,
         };
         createdTodo = await trx.todos.selectAll().insert(newTodo);
-        
+
         if (issueId) {
           await trx.research
             .where({ issueId })
@@ -73,7 +73,7 @@ export const todoRouter = createTRPCRouter({
             .update({ todoId: createdTodo.id });
         }
       });
-      
+
       return createdTodo;
     }),
 

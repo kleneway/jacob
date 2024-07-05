@@ -164,7 +164,7 @@ export const researchIssue = async function (
         if (functionName === ResearchAgentActionType.AskProjectOwner) {
           questionsForProjectOwner.push(args.query);
         } else {
-          const issueId = githubIssue.split('/').pop();
+          const issueId = githubIssue.split("/").pop();
           if (!issueId || isNaN(parseInt(issueId))) {
             throw new Error(`Invalid GitHub issue URL: ${githubIssue}`);
           }
@@ -202,7 +202,9 @@ export const researchIssue = async function (
   if (loops >= maxLoops) {
     console.log("Max loops reached, exiting loop.");
   }
-  return gatheredInformation.filter(info => info.type !== ResearchAgentActionType.AskProjectOwner);
+  return gatheredInformation.filter(
+    (info) => info.type !== ResearchAgentActionType.AskProjectOwner,
+  );
 };
 
 async function callFunction(
