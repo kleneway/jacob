@@ -1,15 +1,15 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import ChatComponent, { type ChatComponentHandle } from "./components/chat";
+import ChatComponent, { ChatComponentHandle } from "./components/chat";
 import ChatHeader from "./components/chat/ChatHeader";
 
 import Workspace from "./components/workspace";
-import { type Message, Role, SidebarIcon } from "~/types";
+import { Message, Role, SidebarIcon } from "~/types";
 import { TaskStatus } from "~/server/db/enums";
 
-import { type Todo, type Task } from "~/server/api/routers/events";
-import { api } from "~/trpc/react";
+import type { Todo, Task } from "~/server/api/routers/events";
+import { api } from "~/utils/api";
 import { trpcClient } from "~/trpc/client";
 import { DEVELOPERS } from "~/data/developers";
 import { TaskType } from "~/server/db/enums";
@@ -17,7 +17,7 @@ import { getSidebarIconForType } from "~/app/utils";
 import Todos from "./components/todos";
 import { toast } from "react-toastify";
 import { getPlanForTaskSubType } from "~/app/utils";
-import { type Project } from "~/server/db/tables/projects.table";
+import type { Project } from "~/server/db/tables/projects.table";
 const CREATE_ISSUE_PROMPT =
   "Looks like our task queue is empty. What do you need to get done next? Give me a quick overview and then I'll ask some clarifying questions. Then I can create a new GitHub issue and start working on it.";
 
@@ -41,9 +41,9 @@ const Dashboard: React.FC<DashboardParams> = ({
   const [selectedIcon, setSelectedIcon] = useState<SidebarIcon>(
     SidebarIcon.Plan,
   );
-  const [tasks, setTasks] = useState<Task[]>(_tasks ?? []);
+  const [tasks, setTasks] = useState<Task[]>(_tasks);
   const [selectedTask, setSelectedTask] = useState<Task | undefined>(
-    tasks?.[0],
+    tasks[0],
   );
 
   const [selectedTodo, setSelectedTodo] = useState<Todo | undefined>(undefined);
@@ -61,7 +61,7 @@ const Dashboard: React.FC<DashboardParams> = ({
     developerId,
   });
   useEffect(() => {
-    if (todos?.length && todos[0]) {
+    if (todos && todos.length > 0) {
       onNewTodoSelected(todos[0]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -84,7 +84,7 @@ const Dashboard: React.FC<DashboardParams> = ({
               ...existingTask,
               plan: getPlanForTaskSubType(payload.subType),
               status: TaskStatus.DONE,
-              currentPlanStep: (existingTask.plan?.length ?? 1) - 1,
+              currentPlanStep: (existingTask.plan?.length ?? 0) - 1,
               statusDescription: "Task completed",
             });
             return;
@@ -121,7 +121,7 @@ const Dashboard: React.FC<DashboardParams> = ({
           if (payload.type === TaskType.code) {
             // Loop throught the code files and update the task with the new code if it exists, add it if it doesn't
             const codeFile = payload;
-            const newCodeFiles = [...(newTask.codeFiles ?? [])];
+            const newCodeFiles = newTask.codeFiles ? [...newTask.codeFiles] : [];
             const index = newCodeFiles.findIndex(
               (c) => c.fileName === codeFile.fileName,
             );
@@ -134,11 +134,11 @@ const Dashboard: React.FC<DashboardParams> = ({
           }
           if (payload.type === TaskType.command) {
             // add the command to the task.commands array
-            newTask.commands = [...(newTask.commands ?? []), payload];
+            newTask.commands = newTask.commands ? [...newTask.commands, payload] : [payload];
           }
           if (payload.type === TaskType.prompt) {
             // add the prompt to the task.prompts array
-            newTask.prompts = [...(newTask.prompts ?? []), payload];
+            newTask.prompts = newTask.prompts ? [...newTask.prompts, payload] : [payload];
           }
 
           // update the task in the tasks array
@@ -179,7 +179,7 @@ const Dashboard: React.FC<DashboardParams> = ({
 
   const onRemoveTask = (taskId: string) => {
     console.log("Removing task: ", taskId);
-    setTasks((tasks) => tasks?.filter((t) => t.id !== taskId));
+    setTasks((tasks) => tasks.filter((t) => t.id !== taskId));
   };
 
   const resetMessages = (messages?: Message[] | undefined) => {
@@ -189,7 +189,7 @@ const Dashboard: React.FC<DashboardParams> = ({
         content: selectedDeveloper?.startingMessage ?? CREATE_ISSUE_PROMPT,
       },
     ];
-    chatRef?.current?.resetChat(_messages);
+    chatRef.current?.resetChat(_messages);
   };
 
   const handleCreateNewTask = async (messages: Message[]) => {
@@ -220,7 +220,7 @@ const Dashboard: React.FC<DashboardParams> = ({
       console.error("Failed to create issue", error);
       toast.error("Failed to create issue");
     } finally {
-      chatRef?.current?.setLoading(true);
+      chatRef.current?.setLoading(false);
     }
   };
 
@@ -265,7 +265,7 @@ const Dashboard: React.FC<DashboardParams> = ({
       }
 
       // Remove this todo from the list of todos and optimistically update the UI
-      const newTodos = todos?.filter((t) => t.id !== selectedTodo.id) ?? [];
+      const newTodos = todos ? todos.filter((t) => t.id !== selectedTodo.id) : [];
       newTodos.length ? onNewTodoSelected(newTodos[0]!) : resetMessages();
 
       await trpcClient.todos.archive.mutate({
@@ -277,17 +277,17 @@ const Dashboard: React.FC<DashboardParams> = ({
       console.error("Failed to update issue", error);
       toast.error("Failed to update issue");
     } finally {
-      chatRef?.current?.setLoading(true);
+      chatRef.current?.setLoading(false);
     }
   };
 
   //** End Task */
 
   const tasksInProgressOrDone =
-    tasks?.filter(
+    tasks.filter(
       (t) =>
         t.status === TaskStatus.IN_PROGRESS || t.status === TaskStatus.DONE,
-    ) ?? [];
+    );
 
   return (
     <div className="h-screen w-full bg-gray-800 text-left ">
@@ -312,7 +312,7 @@ const Dashboard: React.FC<DashboardParams> = ({
         </div>
         <div className="col-span-2 h-screen max-w-7xl bg-gray-900/70">
           <Todos
-            todos={todos ?? []}
+            todos={todos || []}
             updateTodoPositions={updateTodoPositions}
             isLoading={loadingTodos}
           />
@@ -323,11 +323,11 @@ const Dashboard: React.FC<DashboardParams> = ({
         >
           <Workspace
             tasks={
-              tasks?.filter(
+              tasks.filter(
                 (t) =>
                   t.status === TaskStatus.IN_PROGRESS ||
                   t.status === TaskStatus.DONE,
-              ) ?? []
+              )
             }
             selectedIcon={selectedIcon}
             selectedTask={selectedTask}
