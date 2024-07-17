@@ -5,7 +5,7 @@ import ChatComponent, { type ChatComponentHandle } from "./components/chat";
 import ChatHeader from "./components/chat/ChatHeader";
 
 import Workspace from "./components/workspace";
-import { type Message, Role, SidebarIcon } from "~/types";
+import { type Message } from "~/types";
 import { TaskStatus } from "~/server/db/enums";
 
 import type { Todo, Task } from "~/server/api/routers/events";
@@ -38,8 +38,8 @@ const Dashboard: React.FC<DashboardParams> = ({
   sourceMap,
   tasks: _tasks = [],
 }) => {
-  const [selectedIcon, setSelectedIcon] = useState<SidebarIcon>(
-    SidebarIcon.Plan,
+  const [selectedIcon, setSelectedIcon] = useState<string>(
+    "Plan",
   );
   const [tasks, setTasks] = useState<Task[]>(_tasks);
   const [selectedTask, setSelectedTask] = useState<Task | undefined>(tasks[0]);
@@ -98,7 +98,7 @@ const Dashboard: React.FC<DashboardParams> = ({
           };
           setTasks([newTask, ...tasks]);
           setSelectedTask(newTask);
-          setSelectedIcon(SidebarIcon.Plan);
+          setSelectedIcon("Plan");
         } else {
           // get the task for the data's issueId
           if (!existingTask) {
@@ -170,7 +170,7 @@ const Dashboard: React.FC<DashboardParams> = ({
     setSelectedTodo(todo);
     resetMessages([
       {
-        role: Role.ASSISTANT,
+        role: "assistant",
         content: `I'm ready to help with the *${todo.name}* task. Want to start working on this?`,
       },
     ]);
@@ -189,7 +189,7 @@ const Dashboard: React.FC<DashboardParams> = ({
   const resetMessages = (messages?: Message[] | undefined) => {
     const _messages = messages ?? [
       {
-        role: Role.ASSISTANT,
+        role: "assistant",
         content: selectedDeveloper?.startingMessage ?? CREATE_ISSUE_PROMPT,
       },
     ];
@@ -202,7 +202,7 @@ const Dashboard: React.FC<DashboardParams> = ({
 
       const { title, body } = await trpcClient.github.extractIssue.query({
         messages: messages
-          .filter((m) => m.role === Role.ASSISTANT)
+          .filter((m) => m.role === "assistant")
           .slice(-3) // Only look at the last 3 messages so we don't accidently grab an issue that was already created
           .map((m) => m.content)
           .join("\n"),
@@ -238,7 +238,7 @@ const Dashboard: React.FC<DashboardParams> = ({
 
       const data = await trpcClient.github.extractIssue.query({
         messages: messages
-          .filter((m) => m.role === Role.ASSISTANT)
+          .filter((m) => m.role === "assistant")
           .slice(-3) // Only look at the last 3 messages so we don't accidently grab an issue that was already created
           .map((m) => m.content)
           .join("\n"),
