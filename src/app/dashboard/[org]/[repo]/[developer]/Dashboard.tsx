@@ -38,9 +38,7 @@ const Dashboard: React.FC<DashboardParams> = ({
   sourceMap,
   tasks: _tasks = [],
 }) => {
-  const [selectedIcon, setSelectedIcon] = useState<string>(
-    "Plan",
-  );
+  const [selectedIcon, setSelectedIcon] = useState<string>("Plan");
   const [tasks, setTasks] = useState<Task[]>(_tasks);
   const [selectedTask, setSelectedTask] = useState<Task | undefined>(tasks[0]);
 
