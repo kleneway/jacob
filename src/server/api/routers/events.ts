@@ -297,6 +297,65 @@ export const eventsRouter = createTRPCRouter({
       await redisPub.quit();
       return event;
     }),
+  getPlan: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.number(),
+      }),
+    )
+    .query(async ({ input: { projectId } }) => {
+      try {
+        const planEvent = await db.events
+          .where({ projectId, type: TaskType.plan })
+          .order({ createdAt: "DESC" })
+          .first();
+
+        if (!planEvent) {
+          return null;
+        }
+
+        return planEvent.payload as Plan;
+      } catch (error) {
+        console.error("Error fetching plan:", error);
+        throw new Error("Failed to fetch plan");
+      }
+    }),
+  getPlanSteps: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.number(),
+      }),
+    )
+    .query(async ({ input: { projectId } }) => {
+      try {
+        const planStepEvents = await db.events
+          .where({ projectId, type: TaskType.plan })
+          .order({ createdAt: "ASC" });
+
+        if (!planStepEvents.length) {
+          return [];
+        }
+
+        const planSteps = planStepEvents.map((event) => {
+          const payload = event.payload as Plan;
+          return {
+            id: payload.id,
+            title: payload.title,
+            description: payload.description,
+            position: payload.position,
+            isComplete: payload.isComplete,
+          };
+        });
+
+        // Sort plan steps by position
+        planSteps.sort((a, b) => a.position - b.position);
+
+        return planSteps;
+      } catch (error) {
+        console.error("Error fetching plan steps:", error);
+        throw new Error("Failed to fetch plan steps");
+      }
+    }),
 });
 
 const createTaskForIssue = (issue: Issue, events: Event[], repo: string) => {
