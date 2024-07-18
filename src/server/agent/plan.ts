@@ -118,7 +118,7 @@ export const createPlan = async function (
   // To get the best possible plan, we run the request multiple times with various models at varying temps, and choose the most comprehensive response (as measured naively by the number of tool calls and length of arguments)
   const models: Model[] = [
     "claude-3-5-sonnet-20240620",
-    "claude-3-5-sonnet-20240620",
+    "gpt-4-1106-preview",
   ];
   const { userPrompt, systemPrompt } =
     codePatch?.length || buildErrors
@@ -406,4 +406,3 @@ const getBestPlan = async (
 
   return bestEvaluatedPlan.plan;
 };
-
