@@ -6,7 +6,7 @@ import {
   faCheckCircle,
   faTimesCircle,
 } from "@fortawesome/free-solid-svg-icons";
-import { type Task } from "~/server/api/routers/events";
+import { type Task, type Plan, type PlanStep } from "~/server/api/routers/events";
 import { TaskStatus } from "~/server/db/enums";
 import { SidebarIcon } from "~/types";
 import { CodeComponent } from "./Code";
@@ -25,6 +25,9 @@ type WorkspaceProps = {
   setSelectedIcon: (icon: SidebarIcon) => void;
   setSelectedTask: (task: Task | undefined) => void;
   onRemoveTask: (taskId: string) => void;
+  plan: Plan | undefined;
+  planSteps: PlanStep[];
+  isLoadingPlan: boolean;
 };
 
 const Workspace: React.FC<WorkspaceProps> = ({
@@ -34,6 +37,9 @@ const Workspace: React.FC<WorkspaceProps> = ({
   setSelectedIcon,
   setSelectedTask,
   onRemoveTask,
+  plan,
+  planSteps,
+  isLoadingPlan,
 }) => {
   // if new tasks are added, update selectedTask to the first task
   useEffect(() => {
@@ -48,11 +54,10 @@ const Workspace: React.FC<WorkspaceProps> = ({
     }
     switch (selectedIcon) {
       case SidebarIcon.Plan: {
-        const planSteps = selectedTask.plan ?? [];
-        const currentPlanStep = selectedTask.currentPlanStep ?? 0; // TODO: Implement logic to determine current plan step
+        const currentPlanStep = planSteps.length > 0 ? 0 : -1;
         return (
           <PlanComponent
-            planSteps={planSteps}
+            plan={plan}
             currentPlanStep={currentPlanStep}
           />
         );
@@ -122,9 +127,29 @@ const Workspace: React.FC<WorkspaceProps> = ({
               </div>
             </div>
           </div>
-          <div className="flex h-24  border-t-2 border-blueGray-600/50 bg-black p-2 text-sm text-blueGray-400">
+          <div className="flex h-24 border-t-2 border-blueGray-600/50 bg-black p-2 text-sm text-blueGray-400">
+            {isLoadingPlan ? (
+              <div className="flex items-center justify-center w-full">
+                <p className="text-blueGray-400">Loading plan...</p>
+              </div>
+            ) : planSteps.length > 0 ? (
+              <div className="flex flex-col justify-center">
+                <div className="text-blueGray-300">
+                  <span className="font-semibold">
+                    Current Plan Step: {planSteps[0].title}
+                  </span>
+                </div>
+                <p className="text-blueGray-400">
+                  {planSteps[0].description}
+                </p>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center w-full">
+                <p className="text-blueGray-400">No plan steps available.</p>
+              </div>
+            )}
             {selectedTask && (
-              <>
+              <div className="flex ml-4">
                 <div className="mr-4">
                   {selectedTask.status === TaskStatus.IN_PROGRESS && (
                     <FontAwesomeIcon
@@ -146,16 +171,6 @@ const Workspace: React.FC<WorkspaceProps> = ({
                   )}
                 </div>
                 <div>
-                  <div className="text-blueGray-300">
-                    <span className="font-semibold">
-                      Step {(selectedTask.currentPlanStep ?? 0) + 1} of{" "}
-                      {selectedTask.plan?.length ?? 1}:{" "}
-                    </span>
-                    {selectedTask.plan
-                      ? selectedTask.plan[selectedTask.currentPlanStep ?? 0]
-                          ?.title ?? ""
-                      : ""}
-                  </div>
                   <p className="text-blueGray-400">
                     {selectedTask.statusDescription}{" "}
                     {selectedTask.pullRequest && (
@@ -170,7 +185,7 @@ const Workspace: React.FC<WorkspaceProps> = ({
                     )}
                   </p>
                 </div>
-              </>
+              </div>
             )}
           </div>
         </>
