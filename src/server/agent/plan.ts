@@ -116,10 +116,7 @@ export const createPlan = async function (
     ? await findFiles(githubIssue, sourceMap, research)
     : "";
   // To get the best possible plan, we run the request multiple times with various models at varying temps, and choose the most comprehensive response (as measured naively by the number of tool calls and length of arguments)
-  const models: Model[] = [
-    "claude-3-5-sonnet-20240620",
-    "gpt-4-1106-preview",
-  ];
+  const models: Model[] = ["claude-3-5-sonnet-20240620", "gpt-4-0125-preview"];
   const { userPrompt, systemPrompt } =
     codePatch?.length || buildErrors
       ? getPromptsForUpdatedPlan(codePatch, buildErrors)
