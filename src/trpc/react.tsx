@@ -13,6 +13,7 @@ import { useState } from "react";
 import SuperJSON from "superjson";
 
 import { type AppRouter } from "~/server/api/root";
+import { type Plan, type PlanStep } from "~/server/api/routers/events";
 
 const createQueryClient = () => new QueryClient();
 
@@ -27,6 +28,35 @@ const getQueryClient = () => {
 };
 
 export const api = createTRPCReact<AppRouter>();
+
+export const usePlan = (projectId: number) => {
+  return api.events.getPlan.useQuery(
+    { projectId },
+    {
+      onError: (error) => {
+        console.error("Error fetching plan:", error);
+      },
+    }
+  );
+};
+
+export const usePlanSteps = (projectId: number) => {
+  return api.events.getPlanSteps.useQuery(
+    { projectId },
+    {
+      onError: (error) => {
+        console.error("Error fetching plan steps:", error);
+      },
+    }
+  );
+};
+
+export const useOnPlanUpdate = (projectId: number, callback: (plan: Plan) => void) => {
+  api.events.onPlanUpdate.useSubscription({ projectId }, {
+    onData: callback,
+    onError: (error) => console.error("Error in plan update subscription:", error),
+  });
+};
 
 // create persistent WebSocket connection
 const wsClient =
