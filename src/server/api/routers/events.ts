@@ -164,7 +164,7 @@ export const eventsRouter = createTRPCRouter({
           .where({ type })
           .where({ repoFullName: `${org}/${repo}` });
 
-        return events.map((e) => e.payload as EventPayload);
+        return events.map((e) => e.payload as unknown as EventPayload);
       },
     ),
   getTasks: protectedProcedure
