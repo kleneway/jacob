@@ -316,11 +316,11 @@ export const eventsRouter = createTRPCRouter({
             type: TaskType.plan,
           },
           orderBy: {
-            createdAt: 'desc',
+            createdAt: "desc",
           },
         });
 
-        if (planEvent && 'payload' in planEvent) {
+        if (planEvent && "payload" in planEvent) {
           return planEvent.payload as Plan;
         }
         return undefined;
