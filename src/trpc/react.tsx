@@ -13,6 +13,7 @@ import { useState } from "react";
 import SuperJSON from "superjson";
 
 import { type AppRouter } from "~/server/api/root";
+import { type EventType } from "~/types"; // Assuming you have an EventType enum defined
 
 const createQueryClient = () => new QueryClient();
 
@@ -54,13 +55,13 @@ export const useSubscribeToPlan = (projectId: number) => {
     { projectId },
     {
       onData: (data) => {
-        if (data.type === "plan" || data.type === "plan_step") {
-          void api.useContext().events.getPlan.invalidate({ projectId })
-            .catch(error => {
-              console.error("Error invalidating plan:", error);
-            });
-          void api.useContext().events.getPlanSteps.invalidate({ projectId })
-            .catch(error => console.error("Error invalidating plan steps:", error));
+        if (data.type === EventType.Plan || data.type === EventType.PlanStep) {
+          Promise.all([
+            api.useContext().events.getPlan.invalidate({ projectId }),
+            api.useContext().events.getPlanSteps.invalidate({ projectId })
+          ]).catch(error => {
+            console.error("Error invalidating plan or plan steps:", error);
+          });
         }
       },
     },
