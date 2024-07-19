@@ -1,5 +1,5 @@
-import { PLANS } from "~/data/plans";
-import { type Plan } from "~/server/api/routers/events";
+import { PLANS, type PlansType } from "~/data/plans";
+import { type Plan } from "~/types";
 import { TaskSubType, TaskType } from "~/server/db/enums";
 import { type Message, Role, SpecialPhrases, SidebarIcon } from "~/types";
 
@@ -96,7 +96,7 @@ export const getSidebarIconForType = (type: TaskType) => {
 
 export const getPlanForTaskSubType = (taskSubType: TaskSubType) => {
   // set the plan
-  let plan: Plan[] = [];
+  let plan: Plan = { steps: [] };
   switch (taskSubType) {
     case TaskSubType.CREATE_NEW_FILE:
       plan = PLANS[TaskSubType.CREATE_NEW_FILE];
