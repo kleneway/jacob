@@ -1,6 +1,11 @@
 import { z } from "zod";
 import { db } from "~/server/db/db";
-import { TaskType, type TodoStatus } from "~/server/db/enums";
+import {
+  TaskType,
+  type TodoStatus,
+  type Plan,
+  type PlanStep,
+} from "~/server/db/enums";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 
 import { TaskStatus, TaskSubType } from "~/server/db/enums";
@@ -24,7 +29,7 @@ export interface Task extends EventsTask {
   imageUrl?: string;
   currentPlanStep?: number;
   statusDescription?: string;
-  plan?: Plan[];
+  plan?: Plan;
   issue?: Issue;
   pullRequest?: PullRequest;
   commands?: Command[];
@@ -46,15 +51,6 @@ export type Design = {
 
 export type Terminal = {
   type: TaskType.terminal;
-};
-
-export type Plan = {
-  type: TaskType.plan;
-  id?: string;
-  title: string;
-  description: string;
-  position: number;
-  isComplete: boolean;
 };
 
 export type Prompt = {
@@ -120,7 +116,6 @@ type EventPayload =
   | Code
   | Design
   | Terminal
-  | Plan
   | Prompt
   | Issue
   | PullRequest
@@ -309,8 +304,6 @@ const createTaskForIssue = (issue: Issue, events: Event[], repo: string) => {
     issue.filesToCreate = [newFileName];
   }
 
-  // const plan = getPlanForTaskSubType(taskSubType);
-
   // Each issue should have a single pull request. Get the most recent pull request
   const pullRequest = events.find((e) => e.type === TaskType.pull_request)
     ?.payload as PullRequest;
@@ -337,6 +330,20 @@ const createTaskForIssue = (issue: Issue, events: Event[], repo: string) => {
     .filter((e) => e.type === TaskType.prompt && e.issueId === issueId)
     .map((e) => e.payload as Prompt);
 
+  // Get the plan associated with the issue (filter by issueId)
+  const planEvent = events.find(
+    (e) => e.type === TaskType.plan && e.issueId === issueId,
+  );
+  const plan = planEvent ? (planEvent.payload as Plan) : undefined;
+
+  // Get the plan steps associated with the issue (filter by issueId)
+  const planSteps = events
+    .filter((e) => e.type === TaskType.plan_step && e.issueId === issueId)
+    .map((e) => e.payload as PlanStep)
+    .sort((a, b) => a.position - b.position);
+
+  if (plan && planSteps.length > 0) plan.steps = planSteps;
+
   let imageUrl = "";
   if (issue) {
     imageUrl = getSnapshotUrl(issue.description) ?? "";
@@ -353,6 +360,7 @@ const createTaskForIssue = (issue: Issue, events: Event[], repo: string) => {
     status: issue.status === "open" ? TaskStatus.IN_PROGRESS : TaskStatus.DONE,
     storyPoints: 1, // TODO: Calculate story points
     imageUrl,
+    plan: plan && planSteps.length > 0 ? plan : undefined,
     issue,
     pullRequest,
     commands,

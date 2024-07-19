@@ -1,5 +1,5 @@
 import { PLANS } from "~/data/plans";
-import { type Plan } from "~/server/api/routers/events";
+import { type Plan } from "~/types";
 import { TaskSubType, TaskType } from "~/server/db/enums";
 import { type Message, Role, SpecialPhrases, SidebarIcon } from "~/types";
 
@@ -94,22 +94,26 @@ export const getSidebarIconForType = (type: TaskType) => {
   }
 };
 
+const isPlan = (value: unknown): value is Plan => {
+  return typeof value === 'object' && value !== null && 'steps' in value;
+};
+
 export const getPlanForTaskSubType = (taskSubType: TaskSubType) => {
   // set the plan
-  let plan: Plan[] = [];
+  let plan: Plan | undefined;
   switch (taskSubType) {
     case TaskSubType.CREATE_NEW_FILE:
-      plan = PLANS[TaskSubType.CREATE_NEW_FILE];
+      plan = isPlan(PLANS[TaskSubType.CREATE_NEW_FILE]) ? PLANS[TaskSubType.CREATE_NEW_FILE] : undefined;
       break;
     case TaskSubType.EDIT_FILES:
-      plan = PLANS[TaskSubType.EDIT_FILES];
+      plan = isPlan(PLANS[TaskSubType.EDIT_FILES]) ? PLANS[TaskSubType.EDIT_FILES] : undefined;
       break;
     case TaskSubType.CODE_REVIEW:
-      plan = PLANS[TaskSubType.CODE_REVIEW];
+      plan = isPlan(PLANS[TaskSubType.CODE_REVIEW]) ? PLANS[TaskSubType.CODE_REVIEW] : undefined;
       break;
     default:
-      console.error("Unknown task type: ", taskSubType);
-      break;
+      console.error("Unknown task subtype: ", taskSubType);
+      return { steps: [] };
   }
   return plan;
 };
