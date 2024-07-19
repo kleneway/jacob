@@ -8,7 +8,7 @@ import Workspace from "./components/workspace";
 import { type Message, Role, SidebarIcon } from "~/types";
 import { TaskStatus } from "~/server/db/enums";
 
-import { type Todo, type Task } from "~/server/api/routers/events";
+import { type Todo, type Task, type Plan, type PlanStep } from "~/server/api/routers/events";
 import { api } from "~/trpc/react";
 import { trpcClient } from "~/trpc/client";
 import { DEVELOPERS } from "~/data/developers";
@@ -16,7 +16,6 @@ import { TaskType } from "~/server/db/enums";
 import { getSidebarIconForType } from "~/app/utils";
 import Todos from "./components/todos";
 import { toast } from "react-toastify";
-import { getPlanForTaskSubType } from "~/app/utils";
 import { type Project } from "~/server/db/tables/projects.table";
 const CREATE_ISSUE_PROMPT =
   "Looks like our task queue is empty. What do you need to get done next? Give me a quick overview and then I'll ask some clarifying questions. Then I can create a new GitHub issue and start working on it.";
@@ -73,6 +72,7 @@ const Dashboard: React.FC<DashboardParams> = ({
       onData(event) {
         const { issueId, payload } = event;
         const existingTask = tasks.find((t) => t.issueId === issueId);
+
         if (payload.type === TaskType.task) {
           if (existingTask) {
             console.log(
@@ -82,9 +82,8 @@ const Dashboard: React.FC<DashboardParams> = ({
 
             setSelectedTask({
               ...existingTask,
-              plan: getPlanForTaskSubType(payload.subType),
               status: TaskStatus.DONE,
-              currentPlanStep: (existingTask.plan?.length ?? 1) - 1,
+              currentPlanStep: (existingTask.plan?.steps?.length ?? 1) - 1,
               statusDescription: "Task completed",
             });
             return;
@@ -95,8 +94,7 @@ const Dashboard: React.FC<DashboardParams> = ({
           }
           const newTask = {
             ...payload,
-            issueId,
-            plan: getPlanForTaskSubType(payload.subType),
+            issueId
           };
           setTasks([newTask, ...tasks]);
           setSelectedTask(newTask);
@@ -139,6 +137,21 @@ const Dashboard: React.FC<DashboardParams> = ({
           if (payload.type === TaskType.prompt) {
             // add the prompt to the task.prompts array
             newTask.prompts = [...(newTask.prompts ?? []), payload];
+          }
+          if (payload.type === TaskType.plan) {
+            newTask.plan = payload as Plan;
+          }
+          if (payload.type === TaskType.plan_step) {
+            if (!newTask.plan) {
+              newTask.plan = { steps: [] };
+            }
+            const planStep = payload as PlanStep;
+            const existingStepIndex = newTask.plan.steps.findIndex(step => step.id === planStep.id);
+            if (existingStepIndex !== -1) {
+              newTask.plan.steps[existingStepIndex] = planStep;
+            } else {
+              newTask.plan.steps.push(planStep);
+            }
           }
 
           // update the task in the tasks array
