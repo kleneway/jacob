@@ -1,4 +1,4 @@
-import { PLANS, type PlansType } from "~/data/plans";
+import { PLANS } from "~/data/plans";
 import { type Plan } from "~/types";
 import { TaskSubType, TaskType } from "~/server/db/enums";
 import { type Message, Role, SpecialPhrases, SidebarIcon } from "~/types";
@@ -99,16 +99,16 @@ export const getPlanForTaskSubType = (taskSubType: TaskSubType) => {
   let plan: Plan = { steps: [] };
   switch (taskSubType) {
     case TaskSubType.CREATE_NEW_FILE:
-      plan = PLANS[TaskSubType.CREATE_NEW_FILE];
+      plan = PLANS[TaskSubType.CREATE_NEW_FILE] as Plan;
       break;
     case TaskSubType.EDIT_FILES:
-      plan = PLANS[TaskSubType.EDIT_FILES];
+      plan = PLANS[TaskSubType.EDIT_FILES] as Plan;
       break;
     case TaskSubType.CODE_REVIEW:
-      plan = PLANS[TaskSubType.CODE_REVIEW];
+      plan = PLANS[TaskSubType.CODE_REVIEW] as Plan;
       break;
     default:
-      console.error("Unknown task type: ", taskSubType);
+      console.error("Unknown task subtype: ", taskSubType);
       break;
   }
   return plan;
