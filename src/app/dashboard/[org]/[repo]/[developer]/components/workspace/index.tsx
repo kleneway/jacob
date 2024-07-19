@@ -6,11 +6,7 @@ import {
   faCheckCircle,
   faTimesCircle,
 } from "@fortawesome/free-solid-svg-icons";
-import {
-  type Task,
-  type Plan,
-  type PlanStep,
-} from "@/app/api/events/route";
+import { type Task, type Plan, type PlanStep } from "@/app/api/events/route";
 import { TaskStatus } from "~/server/db/enums";
 import { SidebarIcon } from "~/types";
 import { CodeComponent } from "./code";
@@ -31,7 +27,14 @@ interface WorkspaceProps {
   isLoadingPlan: boolean;
 }
 
-export default function Workspace({ selectedIcon, task, code, plan, planSteps, isLoadingPlan }: WorkspaceProps) {
+export default function Workspace({
+  selectedIcon,
+  task,
+  code,
+  plan,
+  planSteps,
+  isLoadingPlan,
+}: WorkspaceProps) {
   const renderComponent = () => {
     switch (selectedIcon) {
       case SidebarIcon.Plan: {
@@ -66,7 +69,7 @@ export default function Workspace({ selectedIcon, task, code, plan, planSteps, i
     <>
       <div className="flex h-screen w-full flex-grow flex-col overflow-hidden">
         <div className="mt-3 flex w-full overflow-x-auto border-b border-blueGray-600 px-2">
-          <div className="mr-2 flex flex-shrink-0 items-center rounded-t-md px-2 py-2 bg-slate-700 text-orange">
+          <div className="mr-2 flex flex-shrink-0 items-center rounded-t-md bg-slate-700 px-2 py-2 text-orange">
             <button className="max-w-[30rem] truncate text-sm">
               {task.name}
             </button>

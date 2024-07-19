@@ -51,12 +51,16 @@ export const usePlanSteps = (projectId: number) => {
   );
 };
 
-export const useOnPlanUpdate = (projectId: number, callback: (plan: Plan) => void) => {
+export const useOnPlanUpdate = (
+  projectId: number,
+  callback: (plan: Plan) => void,
+) => {
   api.events.onPlanUpdate.useSubscription(
     { projectId },
     {
       onData: callback,
-      onError: (error) => console.error("Error in plan update subscription:", error),
+      onError: (error) =>
+        console.error("Error in plan update subscription:", error),
     },
   );
 };
