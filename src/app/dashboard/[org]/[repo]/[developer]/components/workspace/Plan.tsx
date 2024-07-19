@@ -5,10 +5,11 @@ import {
   faCircle,
   faCircleDot,
 } from "@fortawesome/free-solid-svg-icons";
-import { type Plan } from "~/server/api/routers/events";
+import { type Plan, type PlanStep } from "~/server/api/routers/events";
 
 type ComponentProps = {
-  planSteps: Plan[];
+  plan: Plan | undefined;
+  planSteps: PlanStep[];
   currentPlanStep: number;
 };
 
@@ -20,8 +21,9 @@ export const PlanComponent: React.FC<ComponentProps> = ({
     <h2 className="border-b border-blueGray-700 py-2 text-lg font-semibold">
       Plan
     </h2>
-    <div className="grid w-full grid-cols-1 gap-4 p-2 md:grid-cols-2 lg:grid-cols-3">
-      {planSteps.map((plan, idx) => {
+    {planSteps.length > 0 ? (
+      <div className="grid w-full grid-cols-1 gap-4 p-2 md:grid-cols-2 lg:grid-cols-3">
+        {planSteps.sort((a, b) => a.stepNumber - b.stepNumber).map((plan, idx) => {
         const isCurrentStep = !plan.isComplete && idx === currentPlanStep;
         return (
           <div
@@ -36,7 +38,7 @@ export const PlanComponent: React.FC<ComponentProps> = ({
               <h3
                 className={`font-semibold ${isCurrentStep ? "text-orange-400" : ""} ${plan.isComplete && !isCurrentStep ? "line-through opacity-60" : ""}`}
               >
-                {idx + 1}. {plan.title}
+                {plan.stepNumber}. {plan.title}
               </h3>
               <FontAwesomeIcon
                 icon={
@@ -57,8 +59,13 @@ export const PlanComponent: React.FC<ComponentProps> = ({
             )}
           </div>
         );
-      })}
-    </div>
+        })}
+      </div>
+    ) : (
+      <div className="p-4 text-center text-gray-400">
+        No plan steps available.
+      </div>
+    )}
   </div>
 );
 
