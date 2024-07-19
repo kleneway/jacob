@@ -88,7 +88,7 @@ const Dashboard: React.FC<DashboardParams> = ({
   }, [todos]);
 
   useEffect(() => {
-    if (planData) {
+    if (planData && typeof planData === 'object' && 'id' in planData) {
       setPlan(planData as Plan);
     }
   }, [planData]);
