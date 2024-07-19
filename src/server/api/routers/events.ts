@@ -320,7 +320,7 @@ export const eventsRouter = createTRPCRouter({
           },
         });
 
-        if (planEvent && planEvent.payload) {
+        if (planEvent?.payload) {
           return planEvent.payload as unknown as Plan;
         }
         return undefined;

@@ -13,7 +13,7 @@ import { useState } from "react";
 import SuperJSON from "superjson";
 
 import { type AppRouter } from "~/server/api/root";
-import { type EventType } from "~/types"; // Assuming you have an EventType enum defined
+import { EventType } from "~/types"; // Assuming you have an EventType enum defined
 
 const createQueryClient = () => new QueryClient();
 
@@ -56,8 +56,8 @@ export const useSubscribeToPlan = (projectId: number) => {
     {
       onData: (data) => {
         switch (data.type as EventType) {
-          case EventType.Plan:
-          case EventType.PlanStep:
+          case "Plan":
+          case "PlanStep":
             void api
               .useContext()
               .events.getPlan.invalidate({ projectId })
