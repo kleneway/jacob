@@ -48,14 +48,6 @@ export type Terminal = {
   type: TaskType.terminal;
 };
 
-export type Plan = {
-  type: TaskType.plan;
-  id?: string;
-  title: string;
-  description: string;
-  position: number;
-  isComplete: boolean;
-};
 
 export type Prompt = {
   type: TaskType.prompt;
@@ -120,7 +112,6 @@ type EventPayload =
   | Code
   | Design
   | Terminal
-  | Plan
   | Prompt
   | Issue
   | PullRequest
@@ -308,8 +299,6 @@ const createTaskForIssue = (issue: Issue, events: Event[], repo: string) => {
   if (newFileName) {
     issue.filesToCreate = [newFileName];
   }
-
-  // const plan = getPlanForTaskSubType(taskSubType);
 
   // Each issue should have a single pull request. Get the most recent pull request
   const pullRequest = events.find((e) => e.type === TaskType.pull_request)
