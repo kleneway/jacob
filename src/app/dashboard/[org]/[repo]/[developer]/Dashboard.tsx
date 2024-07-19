@@ -88,7 +88,7 @@ const Dashboard: React.FC<DashboardParams> = ({
             setSelectedTask({
               ...existingTask,
               status: TaskStatus.DONE,
-              currentPlanStep: (existingTask.plan?.steps?.length ?? 1) - 1,
+              currentPlanStep: (existingTask.plan?.steps?.length || 1) - 1,
               statusDescription: "Task completed",
             });
             return;
@@ -144,7 +144,7 @@ const Dashboard: React.FC<DashboardParams> = ({
             newTask.prompts = [...(newTask.prompts ?? []), payload];
           }
           if (payload.type === TaskType.plan) {
-            newTask.plan = payload as Plan;
+            newTask.plan = payload as unknown as Plan;
           }
           if (payload.type === TaskType.plan_step) {
             if (!newTask.plan) {
@@ -152,12 +152,12 @@ const Dashboard: React.FC<DashboardParams> = ({
             }
             const planStep = payload as PlanStep;
             const existingStepIndex = newTask.plan.steps.findIndex(
-              (step) => step.id === planStep.id,
+              (step) => (step as PlanStep).id === planStep.id,
             );
             if (existingStepIndex !== -1) {
               newTask.plan.steps[existingStepIndex] = planStep;
             } else {
-              newTask.plan.steps.push(planStep);
+              newTask.plan.steps.push(planStep as unknown as PlanStep);
             }
           }
 
