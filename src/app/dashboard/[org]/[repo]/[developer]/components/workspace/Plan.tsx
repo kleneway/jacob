@@ -5,7 +5,10 @@ import {
   faCircle,
   faCircleDot,
 } from "@fortawesome/free-solid-svg-icons";
-import { type Plan as PlanType, type PlanStep } from "~/server/api/routers/events";
+import {
+  type Plan as PlanType,
+  type PlanStep,
+} from "~/server/api/routers/events";
 
 type ComponentProps = {
   plan: PlanType | undefined;

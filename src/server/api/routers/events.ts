@@ -310,12 +310,12 @@ export const eventsRouter = createTRPCRouter({
     )
     .query(async ({ input: { projectId } }) => {
       try {
-        const planEvent = await db.events
+        const planEvent = await db.events.findBy({
+          projectId,
+          type: TaskType.plan,
+        })
           .where({ projectId, type: TaskType.plan })
-          .order({ createdAt: "DESC" })
-          .first();
-
-        return planEvent?.payload as Plan | undefined;
+        return planEvent?.payload as Plan | null;
       } catch (error) {
         console.error("Error fetching plan:", error);
         throw new Error("Failed to fetch plan");
