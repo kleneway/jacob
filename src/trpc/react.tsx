@@ -55,13 +55,18 @@ export const useSubscribeToPlan = (projectId: number) => {
     { projectId },
     {
       onData: (data) => {
-        if (data.type === EventType.Plan || data.type === EventType.PlanStep) {
-          Promise.all([
-            api.useContext().events.getPlan.invalidate({ projectId }),
-            api.useContext().events.getPlanSteps.invalidate({ projectId })
-          ]).catch(error => {
-            console.error("Error invalidating plan or plan steps:", error);
-          });
+        switch (data.type as EventType) {
+          case EventType.Plan:
+          case EventType.PlanStep:
+            void api.useContext().events.getPlan.invalidate({ projectId })
+              .catch(error => {
+                console.error("Error invalidating plan:", error);
+              });
+            void api.useContext().events.getPlanSteps.invalidate({ projectId })
+              .catch(error => {
+                console.error("Error invalidating plan steps:", error);
+              });
+            break;
         }
       },
     },
