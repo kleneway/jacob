@@ -23,42 +23,44 @@ export const PlanComponent: React.FC<ComponentProps> = ({
     </h2>
     {planSteps.length > 0 ? (
       <div className="grid w-full grid-cols-1 gap-4 p-2 md:grid-cols-2 lg:grid-cols-3">
-        {planSteps.map((plan, idx) => {
-        const isCurrentStep = !plan.isComplete && idx === currentPlanStep;
-        return (
-          <div
-            key={plan.id}
-            className={`relative max-w-sm transform rounded-lg p-4 shadow-lg transition-all duration-300 ease-in-out hover:scale-105 ${
-              idx === currentPlanStep
-                ? "bg-blueGray-700 ring-2 ring-light-blue ring-opacity-50"
-                : "bg-blueGray-800"
-            } ${plan.isComplete ? "opacity-70" : "opacity-100"}`}
-          >
-            <header className={`flex items-center justify-between text-white`}>
-              <h3
-                className={`font-semibold ${isCurrentStep ? "text-orange-400" : ""} ${plan.isComplete && !isCurrentStep ? "line-through opacity-60" : ""}`}
+        {planSteps.map((step: PlanStep, idx: number) => {
+          const isCurrentStep = !step.isComplete && idx === currentPlanStep;
+          return (
+            <div
+              key={step.id}
+              className={`relative max-w-sm transform rounded-lg p-4 shadow-lg transition-all duration-300 ease-in-out hover:scale-105 ${
+                idx === currentPlanStep
+                  ? "bg-blueGray-700 ring-2 ring-light-blue ring-opacity-50"
+                  : "bg-blueGray-800"
+              } ${step.isComplete ? "opacity-70" : "opacity-100"}`}
+            >
+              <header
+                className={`flex items-center justify-between text-white`}
               >
-                {idx + 1}. {plan.title}
-              </h3>
-              <FontAwesomeIcon
-                icon={
-                  isCurrentStep
-                    ? faCircle
-                    : plan.isComplete
-                      ? faCheckCircle
-                      : faCircleDot
-                }
-                className={`h-3 w-3 text-xl ${isCurrentStep ? "animate-pulse text-orange" : plan.isComplete ? "text-light-blue" : "rounded-full border-2 border-blueGray-500 text-transparent"}`}
-              />
-            </header>
-            <div className="mt-2 text-gray-300">
-              <p>{plan.description}</p>
+                <h3
+                  className={`font-semibold ${isCurrentStep ? "text-orange-400" : ""} ${step.isComplete && !isCurrentStep ? "line-through opacity-60" : ""}`}
+                >
+                  {idx + 1}. {step.title}
+                </h3>
+                <FontAwesomeIcon
+                  icon={
+                    isCurrentStep
+                      ? faCircle
+                      : step.isComplete
+                        ? faCheckCircle
+                        : faCircleDot
+                  }
+                  className={`h-3 w-3 text-xl ${isCurrentStep ? "animate-pulse text-orange" : step.isComplete ? "text-light-blue" : "rounded-full border-2 border-blueGray-500 text-transparent"}`}
+                />
+              </header>
+              <div className="mt-2 text-gray-300">
+                <p>{step.description}</p>
+              </div>
+              {isCurrentStep && (
+                <div className="absolute inset-0 animate-pulse rounded-lg bg-light-blue bg-opacity-10"></div>
+              )}
             </div>
-            {isCurrentStep && (
-              <div className="absolute inset-0 animate-pulse rounded-lg bg-light-blue bg-opacity-10"></div>
-            )}
-          </div>
-        );
+          );
         })}
       </div>
     ) : (

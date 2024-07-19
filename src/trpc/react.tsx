@@ -36,7 +36,7 @@ export const usePlan = (projectId: number) => {
       onError: (error) => {
         console.error("Error fetching plan:", error);
       },
-    }
+    },
   );
 };
 
@@ -47,15 +47,22 @@ export const usePlanSteps = (projectId: number) => {
       onError: (error) => {
         console.error("Error fetching plan steps:", error);
       },
-    }
+    },
   );
 };
 
-export const useOnPlanUpdate = (projectId: number, callback: (plan: Plan) => void) => {
-  api.events.onPlanUpdate.useSubscription({ projectId }, {
-    onData: callback,
-    onError: (error) => console.error("Error in plan update subscription:", error),
-  });
+export const useOnPlanUpdate = (
+  projectId: number,
+  callback: (plan: Plan) => void,
+) => {
+  api.events.onPlanUpdate.useSubscription(
+    { projectId },
+    {
+      onData: callback,
+      onError: (error) =>
+        console.error("Error in plan update subscription:", error),
+    },
+  );
 };
 
 // create persistent WebSocket connection

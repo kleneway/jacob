@@ -6,7 +6,11 @@ import {
   faCheckCircle,
   faTimesCircle,
 } from "@fortawesome/free-solid-svg-icons";
-import { type Task, type Plan, type PlanStep } from "~/server/api/routers/events";
+import {
+  type Task,
+  type Plan,
+  type PlanStep,
+} from "~/server/api/routers/events";
 import { TaskStatus } from "~/server/db/enums";
 import { SidebarIcon } from "~/types";
 import { CodeComponent } from "./Code";
@@ -55,12 +59,7 @@ const Workspace: React.FC<WorkspaceProps> = ({
     switch (selectedIcon) {
       case SidebarIcon.Plan: {
         const currentPlanStep = planSteps.length > 0 ? 0 : -1;
-        return (
-          <PlanComponent
-            plan={plan}
-            currentPlanStep={currentPlanStep}
-          />
-        );
+        return <PlanComponent plan={plan} currentPlanStep={currentPlanStep} />;
       }
 
       case SidebarIcon.Code:
@@ -129,7 +128,7 @@ const Workspace: React.FC<WorkspaceProps> = ({
           </div>
           <div className="flex h-24 border-t-2 border-blueGray-600/50 bg-black p-2 text-sm text-blueGray-400">
             {isLoadingPlan ? (
-              <div className="flex items-center justify-center w-full">
+              <div className="flex w-full items-center justify-center">
                 <p className="text-blueGray-400">Loading plan...</p>
               </div>
             ) : planSteps.length > 0 ? (
@@ -139,17 +138,15 @@ const Workspace: React.FC<WorkspaceProps> = ({
                     Current Plan Step: {planSteps[0].title}
                   </span>
                 </div>
-                <p className="text-blueGray-400">
-                  {planSteps[0].description}
-                </p>
+                <p className="text-blueGray-400">{planSteps[0].description}</p>
               </div>
             ) : (
-              <div className="flex items-center justify-center w-full">
+              <div className="flex w-full items-center justify-center">
                 <p className="text-blueGray-400">No plan steps available.</p>
               </div>
             )}
             {selectedTask && (
-              <div className="flex ml-4">
+              <div className="ml-4 flex">
                 <div className="mr-4">
                   {selectedTask.status === TaskStatus.IN_PROGRESS && (
                     <FontAwesomeIcon
