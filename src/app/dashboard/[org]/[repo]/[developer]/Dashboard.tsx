@@ -69,7 +69,7 @@ const Dashboard: React.FC<DashboardParams> = ({
   });
 
   const {
-    data: planData,
+    data: planData = undefined,
     isLoading: loadingPlan,
     error: planError,
   } = api.events.getPlan.useQuery({ projectId: project.id });
@@ -89,7 +89,7 @@ const Dashboard: React.FC<DashboardParams> = ({
 
   useEffect(() => {
     if (planData) {
-      setPlan(planData);
+      setPlan(planData as Plan);
     }
   }, [planData]);
 
