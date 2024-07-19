@@ -32,7 +32,7 @@ export const PlanComponent: React.FC<ComponentProps> = ({
             const isCurrentStep = !plan.isComplete && idx === currentPlanStep;
             return (
               <div
-                key={plan.id}
+                key={plan.id as React.Key}
                 className={`relative max-w-sm transform rounded-lg p-4 shadow-lg transition-all duration-300 ease-in-out hover:scale-105 ${
                   idx === currentPlanStep
                     ? "bg-blueGray-700 ring-2 ring-light-blue ring-opacity-50"
