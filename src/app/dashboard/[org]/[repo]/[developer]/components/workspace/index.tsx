@@ -9,6 +9,7 @@ import {
 import { type Task } from "~/server/api/routers/events";
 import { TaskStatus } from "~/server/db/enums";
 import { SidebarIcon } from "~/types";
+import { Plan } from "~/server/agent/plan";
 import { CodeComponent } from "./Code";
 import { DesignComponent } from "./Design";
 import { IssueComponent } from "./Issue";
@@ -48,9 +49,9 @@ const Workspace: React.FC<WorkspaceProps> = ({
     }
     switch (selectedIcon) {
       case SidebarIcon.Plan: {
-        const plan = selectedTask.plan;
+        const plan = selectedTask.plan as Plan | undefined;
         const currentPlanStep = selectedTask.currentPlanStep ?? 0;
-        return <PlanComponent plan={plan} currentStepIndex={currentPlanStep} />;
+        return plan ? <PlanComponent plan={plan} currentStepIndex={currentPlanStep} /> : null;
       }
 
       case SidebarIcon.Code:
@@ -144,10 +145,10 @@ const Workspace: React.FC<WorkspaceProps> = ({
                   <div className="text-blueGray-300">
                     <span className="font-semibold">
                       Step {(selectedTask.currentPlanStep ?? 0) + 1} of{" "}
-                      {selectedTask.plan?.steps?.length ?? 1}:{" "}
+                      {(selectedTask.plan as Plan | undefined)?.steps?.length ?? 1}:{" "}
                     </span>
-                    {selectedTask.plan
-                      ? selectedTask.plan.steps?.[0]?.name ?? ""
+                    {(selectedTask.plan as Plan | undefined)
+                      ? (selectedTask.plan as Plan).steps?.[0]?.title ?? ""
                       : ""}
                   </div>
                   <p className="text-blueGray-400">
