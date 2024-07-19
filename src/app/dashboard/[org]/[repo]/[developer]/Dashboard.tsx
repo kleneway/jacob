@@ -8,7 +8,12 @@ import Workspace from "./components/workspace";
 import { type Message, Role, SidebarIcon } from "~/types";
 import { TaskStatus } from "~/server/db/enums";
 
-import { type Todo, type Task, type Plan, type PlanStep } from "~/server/api/routers/events";
+import {
+  type Todo,
+  type Task,
+  type Plan,
+  type PlanStep,
+} from "~/server/api/routers/events";
 import { api } from "~/trpc/react";
 import { trpcClient } from "~/trpc/client";
 import { DEVELOPERS } from "~/data/developers";
@@ -94,7 +99,7 @@ const Dashboard: React.FC<DashboardParams> = ({
           }
           const newTask = {
             ...payload,
-            issueId
+            issueId,
           };
           setTasks([newTask, ...tasks]);
           setSelectedTask(newTask);
@@ -146,7 +151,9 @@ const Dashboard: React.FC<DashboardParams> = ({
               newTask.plan = { steps: [] };
             }
             const planStep = payload as PlanStep;
-            const existingStepIndex = newTask.plan.steps.findIndex(step => step.id === planStep.id);
+            const existingStepIndex = newTask.plan.steps.findIndex(
+              (step) => step.id === planStep.id,
+            );
             if (existingStepIndex !== -1) {
               newTask.plan.steps[existingStepIndex] = planStep;
             } else {

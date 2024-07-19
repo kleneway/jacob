@@ -1,6 +1,11 @@
 import { z } from "zod";
 import { db } from "~/server/db/db";
-import { TaskType, type TodoStatus, type Plan, type PlanStep } from "~/server/db/enums";
+import {
+  TaskType,
+  type TodoStatus,
+  type Plan,
+  type PlanStep,
+} from "~/server/db/enums";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 
 import { TaskStatus, TaskSubType } from "~/server/db/enums";
@@ -47,7 +52,6 @@ export type Design = {
 export type Terminal = {
   type: TaskType.terminal;
 };
-
 
 export type Prompt = {
   type: TaskType.prompt;
@@ -327,8 +331,10 @@ const createTaskForIssue = (issue: Issue, events: Event[], repo: string) => {
     .map((e) => e.payload as Prompt);
 
   // Get the plan associated with the issue (filter by issueId)
-  const planEvent = events.find((e) => e.type === TaskType.plan && e.issueId === issueId);
-  const plan = planEvent ? planEvent.payload as Plan : undefined;
+  const planEvent = events.find(
+    (e) => e.type === TaskType.plan && e.issueId === issueId,
+  );
+  const plan = planEvent ? (planEvent.payload as Plan) : undefined;
 
   // Get the plan steps associated with the issue (filter by issueId)
   const planSteps = events

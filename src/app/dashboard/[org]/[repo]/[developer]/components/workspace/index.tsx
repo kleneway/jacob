@@ -50,12 +50,7 @@ const Workspace: React.FC<WorkspaceProps> = ({
       case SidebarIcon.Plan: {
         const plan = selectedTask.plan;
         const currentPlanStep = selectedTask.currentPlanStep ?? 0;
-        return (
-          <PlanComponent
-            plan={plan}
-            currentStepIndex={currentPlanStep}
-          />
-        );
+        return <PlanComponent plan={plan} currentStepIndex={currentPlanStep} />;
       }
 
       case SidebarIcon.Code:
@@ -152,8 +147,7 @@ const Workspace: React.FC<WorkspaceProps> = ({
                       {selectedTask.plan?.steps?.length ?? 1}:{" "}
                     </span>
                     {selectedTask.plan
-                      ? selectedTask.plan.steps?.[0]
-                          ?.name ?? ""
+                      ? selectedTask.plan.steps?.[0]?.name ?? ""
                       : ""}
                   </div>
                   <p className="text-blueGray-400">
