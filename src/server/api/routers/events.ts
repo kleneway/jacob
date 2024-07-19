@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { db } from "~/server/db/db";
-import { TaskType, type TodoStatus } from "~/server/db/enums";
+import { TaskType, type TodoStatus, type Plan } from "~/server/db/enums";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 
 import { TaskStatus, TaskSubType } from "~/server/db/enums";
@@ -310,12 +310,15 @@ export const eventsRouter = createTRPCRouter({
     )
     .query(async ({ input: { projectId } }) => {
       try {
-        const planEvent = await db.events.findBy({
-          projectId,
-          type: TaskType.plan,
-        })
-          .where({ projectId, type: TaskType.plan })
-        return planEvent?.payload as Plan | null;
+        const planEvent = await db.events.findOne({
+          where: { projectId, type: TaskType.plan },
+          orderBy: { createdAt: "DESC" },
+        });
+
+        if (planEvent && typeof planEvent.payload === 'object' && 'title' in planEvent.payload) {
+          return planEvent.payload as Plan;
+        }
+        return null;
       } catch (error) {
         console.error("Error fetching plan:", error);
         throw new Error("Failed to fetch plan");
