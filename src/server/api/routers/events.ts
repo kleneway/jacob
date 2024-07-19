@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { db } from "~/server/db/db";
-import { TaskType, type TodoStatus } from "~/server/db/enums";
+import { TaskType, type TodoStatus, type Plan } from "~/server/db/enums";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 
 import { TaskStatus, TaskSubType } from "~/server/db/enums";
@@ -74,6 +74,11 @@ export type Prompt = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     prompt: ReturnType<any>;
   };
+};
+
+export type PlanStep = {
+  stepNumber: number;
+  title: string;
 };
 
 export type Issue = {
@@ -159,7 +164,7 @@ export const eventsRouter = createTRPCRouter({
           .where({ type })
           .where({ repoFullName: `${org}/${repo}` });
 
-        return events.map((e) => e.payload as EventPayload);
+        return events.map((e) => e.payload as unknown as EventPayload);
       },
     ),
   getTasks: protectedProcedure
@@ -296,6 +301,57 @@ export const eventsRouter = createTRPCRouter({
       await redisPub.publish("events", JSON.stringify(event));
       await redisPub.quit();
       return event;
+    }),
+  getPlan: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.number(),
+      }),
+    )
+    .query(async ({ input: { projectId } }) => {
+      try {
+        const planEvent = await db.events.findFirst({
+          where: {
+            projectId,
+            type: TaskType.plan,
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+        });
+
+        if (planEvent?.payload) {
+          return planEvent.payload as unknown as Plan;
+        }
+        return undefined;
+      } catch (error) {
+        console.error("Error fetching plan:", error);
+        throw new Error("Failed to fetch plan");
+      }
+    }),
+  getPlanSteps: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.number(),
+      }),
+    )
+    .query(async ({ input: { projectId } }) => {
+      try {
+        const planStepEvents = await db.events
+          .where({ projectId, type: TaskType.plan })
+          .order({ createdAt: "ASC" });
+
+        return planStepEvents.map((event) => {
+          const payload = event.payload as Plan;
+          return {
+            stepNumber: payload.position,
+            title: payload.title,
+          } as PlanStep;
+        });
+      } catch (error) {
+        console.error("Error fetching plan steps:", error);
+        throw new Error("Failed to fetch plan steps");
+      }
     }),
 });
 

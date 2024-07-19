@@ -13,6 +13,7 @@ import { useState } from "react";
 import SuperJSON from "superjson";
 
 import { type AppRouter } from "~/server/api/root";
+import { EventType } from "~/types"; // Assuming you have an EventType enum defined
 
 const createQueryClient = () => new QueryClient();
 
@@ -27,6 +28,54 @@ const getQueryClient = () => {
 };
 
 export const api = createTRPCReact<AppRouter>();
+
+// Add new hooks for managing Plan and PlanStep event data
+export const usePlan = (projectId: number) => {
+  return api.events.getPlan.useQuery(
+    { projectId },
+    {
+      retry: false,
+      refetchOnWindowFocus: false,
+    },
+  );
+};
+
+export const usePlanSteps = (projectId: number) => {
+  return api.events.getPlanSteps.useQuery(
+    { projectId },
+    {
+      retry: false,
+      refetchOnWindowFocus: false,
+    },
+  );
+};
+
+export const useSubscribeToPlan = (projectId: number) => {
+  return api.events.onAdd.useSubscription(
+    { projectId },
+    {
+      onData: (data) => {
+        switch (data.type as EventType) {
+          case "Plan":
+          case "PlanStep":
+            void api
+              .useContext()
+              .events.getPlan.invalidate({ projectId })
+              .catch((error) => {
+                console.error("Error invalidating plan:", error);
+              });
+            void api
+              .useContext()
+              .events.getPlanSteps.invalidate({ projectId })
+              .catch((error) => {
+                console.error("Error invalidating plan steps:", error);
+              });
+            break;
+        }
+      },
+    },
+  );
+};
 
 // create persistent WebSocket connection
 const wsClient =

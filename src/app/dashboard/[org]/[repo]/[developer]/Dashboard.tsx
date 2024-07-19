@@ -8,7 +8,12 @@ import Workspace from "./components/workspace";
 import { type Message, Role, SidebarIcon } from "~/types";
 import { TaskStatus } from "~/server/db/enums";
 
-import { type Todo, type Task } from "~/server/api/routers/events";
+import {
+  type Todo,
+  type Task,
+  type Plan,
+  type PlanStep,
+} from "~/server/api/routers/events";
 import { api } from "~/trpc/react";
 import { trpcClient } from "~/trpc/client";
 import { DEVELOPERS } from "~/data/developers";
@@ -45,6 +50,8 @@ const Dashboard: React.FC<DashboardParams> = ({
   const [selectedTask, setSelectedTask] = useState<Task | undefined>(
     tasks?.[0],
   );
+  const [plan, setPlan] = useState<Plan | undefined>(undefined);
+  const [planSteps, setPlanSteps] = useState<PlanStep[]>([]);
 
   const [selectedTodo, setSelectedTodo] = useState<Todo | undefined>(undefined);
 
@@ -60,12 +67,37 @@ const Dashboard: React.FC<DashboardParams> = ({
     projectId: project.id,
     developerId,
   });
+
+  const {
+    data: planData
+    isLoading: loadingPlan,
+    error: planError,
+  } = api.events.getPlan.useQuery<Plan | undefined>({ projectId: project.id });
+
+  const {
+    data: planStepsData,
+    isLoading: loadingPlanSteps,
+    error: planStepsError,
+  } = api.events.getPlanSteps.useQuery({ projectId: project.id });
+
   useEffect(() => {
     if (todos?.length && todos[0]) {
       onNewTodoSelected(todos[0]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [todos]);
+
+  useEffect(() => {
+    if (planData) {
+      setPlan(planData);
+    }
+  }, [planData]);
+
+  useEffect(() => {
+    if (planStepsData) {
+      setPlanSteps(planStepsData);
+    }
+  }, [planStepsData]);
 
   api.events.onAdd.useSubscription(
     { org, repo },
@@ -334,6 +366,9 @@ const Dashboard: React.FC<DashboardParams> = ({
             setSelectedIcon={setSelectedIcon}
             setSelectedTask={setSelectedTask}
             onRemoveTask={onRemoveTask}
+            plan={plan}
+            planSteps={planSteps}
+            isLoadingPlan={loadingPlan || loadingPlanSteps}
           />
         </div>
       </div>
