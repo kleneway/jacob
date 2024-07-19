@@ -1,7 +1,6 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faTimes,
   faClock,
   faCheckCircle,
   faTimesCircle,
@@ -21,10 +20,23 @@ import Sidebar from "../Sidebar";
 interface WorkspaceProps {
   selectedIcon: SidebarIcon;
   task: Task;
-  code: string;
   plan: Plan;
   planSteps: PlanStep[];
   isLoadingPlan: boolean;
+  code: string;
+}
+
+type Task = {
+  commands?: string[];
+  issue?: any;
+  imageUrl?: string;
+  prompts?: any[];
+  pullRequest?: { link: string };
+  name: string;
+  status: TaskStatus;
+  statusDescription: string;
+  title: string;
+  description: string;
 }
 
 export default function Workspace({
@@ -143,7 +155,7 @@ export default function Workspace({
         </>
       </div>
       <div className="h-screen border-l border-blueGray-700 ">
-        <Sidebar selectedIcon={selectedIcon} onIconClick={() => {}} />
+        <Sidebar selectedIcon={selectedIcon} onIconClick={() => undefined} />
       </div>
     </>
   );
