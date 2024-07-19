@@ -10,119 +10,73 @@ import {
   type Task,
   type Plan,
   type PlanStep,
-} from "~/server/api/routers/events";
+} from "@/app/api/events/route";
 import { TaskStatus } from "~/server/db/enums";
 import { SidebarIcon } from "~/types";
-import { CodeComponent } from "./Code";
+import { CodeComponent } from "./code";
 import { DesignComponent } from "./Design";
 import { IssueComponent } from "./Issue";
-import { PlanComponent } from "./Plan";
+import { PlanComponent } from "./plan";
 import { PromptsComponent } from "./Prompts";
 import { PullRequestComponent } from "./PullRequest";
 import { TerminalComponent } from "./Terminal";
 import Sidebar from "../Sidebar";
 
-type WorkspaceProps = {
-  tasks: Task[];
+interface WorkspaceProps {
   selectedIcon: SidebarIcon;
-  selectedTask?: Task;
-  setSelectedIcon: (icon: SidebarIcon) => void;
-  setSelectedTask: (task: Task | undefined) => void;
-  onRemoveTask: (taskId: string) => void;
-  plan: Plan | undefined;
+  task: Task;
+  code: string;
+  plan: Plan;
   planSteps: PlanStep[];
   isLoadingPlan: boolean;
-};
+}
 
-const Workspace: React.FC<WorkspaceProps> = ({
-  tasks = [],
-  selectedIcon,
-  selectedTask,
-  setSelectedIcon,
-  setSelectedTask,
-  onRemoveTask,
-  plan,
-  planSteps,
-  isLoadingPlan,
-}) => {
-  // if new tasks are added, update selectedTask to the first task
-  useEffect(() => {
-    if (tasks && tasks.length > 0 && !selectedTask) {
-      setSelectedTask(tasks[0]);
-    }
-  }, [tasks, selectedTask, setSelectedTask]);
-
-  const renderComponent = (selectedTask: Task | undefined) => {
-    if (!selectedTask) {
-      return null;
-    }
+export default function Workspace({ selectedIcon, task, code, plan, planSteps, isLoadingPlan }: WorkspaceProps) {
+  const renderComponent = () => {
     switch (selectedIcon) {
       case SidebarIcon.Plan: {
         const currentPlanStep = planSteps.length > 0 ? 0 : -1;
-        return <PlanComponent plan={plan} currentPlanStep={currentPlanStep} />;
+        return (
+          <PlanComponent
+            plan={plan}
+            planSteps={planSteps}
+            currentPlanStep={currentPlanStep}
+          />
+        );
       }
 
       case SidebarIcon.Code:
-        return <CodeComponent codeFiles={selectedTask?.codeFiles} />;
+        return <CodeComponent code={code} />;
       case SidebarIcon.Terminal:
-        return <TerminalComponent commands={selectedTask?.commands} />;
+        return <TerminalComponent commands={task?.commands} />;
       case SidebarIcon.Issues:
-        return <IssueComponent issue={selectedTask?.issue} />;
+        return <IssueComponent issue={task?.issue} />;
       case SidebarIcon.Design:
-        return <DesignComponent imageUrl={selectedTask?.imageUrl} />;
+        return <DesignComponent imageUrl={task?.imageUrl} />;
       case SidebarIcon.Prompts:
-        return <PromptsComponent promptDetailsArray={selectedTask.prompts} />;
+        return <PromptsComponent promptDetailsArray={task.prompts} />;
       case SidebarIcon.PullRequests:
-        return <PullRequestComponent pullRequest={selectedTask?.pullRequest} />;
+        return <PullRequestComponent pullRequest={task?.pullRequest} />;
       default:
         return null;
     }
-  };
-  const handleRemoveTask = (task: Task) => {
-    // if the task being removed is the selected task, set selected task to undefined
-    if (selectedTask?.id === task.id) {
-      setSelectedTask(undefined);
-    }
-    onRemoveTask(task?.id);
-  };
-
-  const handleSelectTask = (task: Task) => {
-    setSelectedTask(task);
-  };
-
-  const onIconClick = (icon: SidebarIcon) => {
-    setSelectedIcon(icon);
   };
 
   return (
     <>
       <div className="flex h-screen w-full flex-grow flex-col overflow-hidden">
         <div className="mt-3 flex w-full overflow-x-auto border-b border-blueGray-600 px-2">
-          {tasks?.map((task) => (
-            <div
-              key={task.id}
-              className={`mr-2 flex flex-shrink-0 items-center rounded-t-md px-2 py-2 ${selectedTask?.id === task.id ? "bg-slate-700 text-orange" : "bg-blueGray-800 text-blueGray-500"} transition duration-300 ease-in-out hover:bg-slate-700 hover:text-orange`}
-            >
-              <button
-                className=" max-w-[30rem] truncate text-sm"
-                onClick={() => handleSelectTask(task)}
-              >
-                {task.name}
-              </button>
-              <button
-                className="ml-2 h-6 w-6 text-gray-300  hover:rounded-full hover:bg-gray-500"
-                onClick={() => handleRemoveTask(task)}
-              >
-                <FontAwesomeIcon icon={faTimes} />
-              </button>
-            </div>
-          ))}
+          <div className="mr-2 flex flex-shrink-0 items-center rounded-t-md px-2 py-2 bg-slate-700 text-orange">
+            <button className="max-w-[30rem] truncate text-sm">
+              {task.name}
+            </button>
+          </div>
         </div>
         <>
           <div className="flex" style={{ height: "calc(100vh - 9rem)" }}>
             <div className="hide-scrollbar h-full w-full overflow-y-auto">
               <div className="flex h-full w-full flex-grow p-4">
-                {renderComponent(selectedTask)}
+                {renderComponent()}
               </div>
             </div>
           </div>
@@ -131,7 +85,7 @@ const Workspace: React.FC<WorkspaceProps> = ({
               <div className="flex w-full items-center justify-center">
                 <p className="text-blueGray-400">Loading plan...</p>
               </div>
-            ) : planSteps.length > 0 ? (
+            ) : planSteps && planSteps.length > 0 ? (
               <div className="flex flex-col justify-center">
                 <div className="text-blueGray-300">
                   <span className="font-semibold">
@@ -145,53 +99,49 @@ const Workspace: React.FC<WorkspaceProps> = ({
                 <p className="text-blueGray-400">No plan steps available.</p>
               </div>
             )}
-            {selectedTask && (
-              <div className="ml-4 flex">
-                <div className="mr-4">
-                  {selectedTask.status === TaskStatus.IN_PROGRESS && (
-                    <FontAwesomeIcon
-                      icon={faClock}
-                      className="text-yellow-500/50"
-                    />
-                  )}
-                  {selectedTask.status === TaskStatus.DONE && (
-                    <FontAwesomeIcon
-                      icon={faCheckCircle}
-                      className="text-green-700"
-                    />
-                  )}
-                  {selectedTask.status === TaskStatus.ERROR && (
-                    <FontAwesomeIcon
-                      icon={faTimesCircle}
-                      className="text-red-700"
-                    />
-                  )}
-                </div>
-                <div>
-                  <p className="text-blueGray-400">
-                    {selectedTask.statusDescription}{" "}
-                    {selectedTask.pullRequest && (
-                      <a
-                        href={selectedTask.pullRequest.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-500 underline"
-                      >
-                        Click Here to Review Pull Request
-                      </a>
-                    )}
-                  </p>
-                </div>
+            <div className="ml-4 flex">
+              <div className="mr-4">
+                {task.status === TaskStatus.IN_PROGRESS && (
+                  <FontAwesomeIcon
+                    icon={faClock}
+                    className="text-yellow-500/50"
+                  />
+                )}
+                {task.status === TaskStatus.DONE && (
+                  <FontAwesomeIcon
+                    icon={faCheckCircle}
+                    className="text-green-700"
+                  />
+                )}
+                {task.status === TaskStatus.ERROR && (
+                  <FontAwesomeIcon
+                    icon={faTimesCircle}
+                    className="text-red-700"
+                  />
+                )}
               </div>
-            )}
+              <div>
+                <p className="text-blueGray-400">
+                  {task.statusDescription}{" "}
+                  {task.pullRequest && (
+                    <a
+                      href={task.pullRequest.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-500 underline"
+                    >
+                      Click Here to Review Pull Request
+                    </a>
+                  )}
+                </p>
+              </div>
+            </div>
           </div>
         </>
       </div>
       <div className="h-screen border-l border-blueGray-700 ">
-        <Sidebar selectedIcon={selectedIcon} onIconClick={onIconClick} />
+        <Sidebar selectedIcon={selectedIcon} onIconClick={() => {}} />
       </div>
     </>
   );
-};
-
-export default Workspace;
+}
