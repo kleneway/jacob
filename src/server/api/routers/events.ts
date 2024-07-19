@@ -303,7 +303,7 @@ export const eventsRouter = createTRPCRouter({
         projectId: z.number(),
       }),
     )
-    .query(async ({ input: { projectId } }) => {
+    .query(async ({ input: { projectId } }): Promise<Plan | null> => {
       try {
         const planEvent = await db.events
           .where({ projectId, type: TaskType.plan })
@@ -326,7 +326,7 @@ export const eventsRouter = createTRPCRouter({
         projectId: z.number(),
       }),
     )
-    .query(async ({ input: { projectId } }) => {
+    .query(async ({ input: { projectId } }): Promise<PlanStep[]> => {
       try {
         const planStepEvents = await db.events
           .where({ projectId, type: TaskType.plan })
@@ -336,7 +336,7 @@ export const eventsRouter = createTRPCRouter({
           return [];
         }
 
-        const planSteps = planStepEvents.map((event) => {
+        const planSteps: PlanStep[] = planStepEvents.map((event) => {
           const payload = event.payload as Plan;
           return {
             id: payload.id,
