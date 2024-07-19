@@ -5,7 +5,14 @@ import {
   faCircle,
   faCircleDot,
 } from "@fortawesome/free-solid-svg-icons";
-import { type Plan } from "~/server/api/routers/events";
+import { type PlanStep } from "~/server/agent/plan";
+
+type Plan = PlanStep & {
+  id: string;
+  title: string;
+  description: string;
+  isComplete: boolean;
+};
 
 type ComponentProps = {
   planSteps: Plan[];
