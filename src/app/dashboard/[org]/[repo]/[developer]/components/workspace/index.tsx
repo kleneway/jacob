@@ -6,7 +6,11 @@ import {
   faCheckCircle,
   faTimesCircle,
 } from "@fortawesome/free-solid-svg-icons";
-import { type Task, type Plan, type PlanStep } from "~/server/api/routers/events";
+import {
+  type Task,
+  type Plan,
+  type PlanStep,
+} from "~/server/api/routers/events";
 import { TaskStatus } from "~/server/db/enums";
 import { SidebarIcon } from "~/types";
 import { CodeComponent } from "./Code";
@@ -55,12 +59,7 @@ const Workspace: React.FC<WorkspaceProps> = ({
     switch (selectedIcon) {
       case SidebarIcon.Plan: {
         const currentPlanStep = planSteps.length > 0 ? 0 : -1;
-        return (
-          <PlanComponent
-            plan={plan}
-            planSteps={planSteps}
-          />
-        );
+        return <PlanComponent plan={plan} planSteps={planSteps} />;
       }
 
       case SidebarIcon.Code:
@@ -129,27 +128,26 @@ const Workspace: React.FC<WorkspaceProps> = ({
           </div>
           <div className="flex h-24 border-t-2 border-blueGray-600/50 bg-black p-2 text-sm text-blueGray-400">
             {isLoadingPlan ? (
-              <div className="flex items-center justify-center w-full">
+              <div className="flex w-full items-center justify-center">
                 <p>Loading plan...</p>
               </div>
             ) : planSteps.length > 0 ? (
-              <div className="flex flex-col justify-center w-full">
+              <div className="flex w-full flex-col justify-center">
                 <div className="text-blueGray-300">
                   <span className="font-semibold">
-                    Current Plan Step: {planSteps[0].stepNumber} of {planSteps.length}
+                    Current Plan Step: {planSteps[0].stepNumber} of{" "}
+                    {planSteps.length}
                   </span>
                 </div>
-                <p className="text-blueGray-400">
-                  {planSteps[0].title}
-                </p>
+                <p className="text-blueGray-400">{planSteps[0].title}</p>
               </div>
             ) : (
-              <div className="flex items-center justify-center w-full">
+              <div className="flex w-full items-center justify-center">
                 <p>No plan steps available.</p>
               </div>
             )}
             {selectedTask && (
-              <div className="flex items-center ml-4">
+              <div className="ml-4 flex items-center">
                 <div className="mr-4">
                   {selectedTask.status === TaskStatus.IN_PROGRESS && (
                     <FontAwesomeIcon

@@ -335,7 +335,10 @@ export const eventsRouter = createTRPCRouter({
 
         return planStepEvents.map((event) => {
           const payload = event.payload as Plan;
-          return { stepNumber: payload.position, title: payload.title } as PlanStep;
+          return {
+            stepNumber: payload.position,
+            title: payload.title,
+          } as PlanStep;
         });
       } catch (error) {
         console.error("Error fetching plan steps:", error);

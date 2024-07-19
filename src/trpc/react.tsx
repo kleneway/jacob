@@ -30,17 +30,23 @@ export const api = createTRPCReact<AppRouter>();
 
 // Add new hooks for managing Plan and PlanStep event data
 export const usePlan = (projectId: number) => {
-  return api.events.getPlan.useQuery({ projectId }, {
-    retry: false,
-    refetchOnWindowFocus: false,
-  });
+  return api.events.getPlan.useQuery(
+    { projectId },
+    {
+      retry: false,
+      refetchOnWindowFocus: false,
+    },
+  );
 };
 
 export const usePlanSteps = (projectId: number) => {
-  return api.events.getPlanSteps.useQuery({ projectId }, {
-    retry: false,
-    refetchOnWindowFocus: false,
-  });
+  return api.events.getPlanSteps.useQuery(
+    { projectId },
+    {
+      retry: false,
+      refetchOnWindowFocus: false,
+    },
+  );
 };
 
 export const useSubscribeToPlan = (projectId: number) => {
@@ -48,12 +54,12 @@ export const useSubscribeToPlan = (projectId: number) => {
     { projectId },
     {
       onData: (data) => {
-        if (data.type === 'plan' || data.type === 'plan_step') {
+        if (data.type === "plan" || data.type === "plan_step") {
           api.useContext().events.getPlan.invalidate({ projectId });
           api.useContext().events.getPlanSteps.invalidate({ projectId });
         }
       },
-    }
+    },
   );
 };
 
