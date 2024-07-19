@@ -28,6 +28,35 @@ const getQueryClient = () => {
 
 export const api = createTRPCReact<AppRouter>();
 
+// Add new hooks for managing Plan and PlanStep event data
+export const usePlan = (projectId: number) => {
+  return api.events.getPlan.useQuery({ projectId }, {
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+};
+
+export const usePlanSteps = (projectId: number) => {
+  return api.events.getPlanSteps.useQuery({ projectId }, {
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+};
+
+export const useSubscribeToPlan = (projectId: number) => {
+  return api.events.onAdd.useSubscription(
+    { projectId },
+    {
+      onData: (data) => {
+        if (data.type === 'plan' || data.type === 'plan_step') {
+          api.useContext().events.getPlan.invalidate({ projectId });
+          api.useContext().events.getPlanSteps.invalidate({ projectId });
+        }
+      },
+    }
+  );
+};
+
 // create persistent WebSocket connection
 const wsClient =
   typeof window !== "undefined"
