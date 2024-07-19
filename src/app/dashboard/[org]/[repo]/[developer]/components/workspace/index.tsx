@@ -48,12 +48,12 @@ const Workspace: React.FC<WorkspaceProps> = ({
     }
     switch (selectedIcon) {
       case SidebarIcon.Plan: {
-        const planSteps = selectedTask.plan ?? [];
-        const currentPlanStep = selectedTask.currentPlanStep ?? 0; // TODO: Implement logic to determine current plan step
+        const plan = selectedTask.plan;
+        const currentPlanStep = selectedTask.currentPlanStep ?? 0;
         return (
           <PlanComponent
-            planSteps={planSteps}
-            currentPlanStep={currentPlanStep}
+            plan={plan}
+            currentStepIndex={currentPlanStep}
           />
         );
       }
@@ -149,11 +149,11 @@ const Workspace: React.FC<WorkspaceProps> = ({
                   <div className="text-blueGray-300">
                     <span className="font-semibold">
                       Step {(selectedTask.currentPlanStep ?? 0) + 1} of{" "}
-                      {selectedTask.plan?.length ?? 1}:{" "}
+                      {selectedTask.plan?.steps?.length ?? 1}:{" "}
                     </span>
                     {selectedTask.plan
-                      ? selectedTask.plan[selectedTask.currentPlanStep ?? 0]
-                          ?.title ?? ""
+                      ? selectedTask.plan.steps?.[selectedTask.currentPlanStep ?? 0]
+                          ?.name ?? ""
                       : ""}
                   </div>
                   <p className="text-blueGray-400">
