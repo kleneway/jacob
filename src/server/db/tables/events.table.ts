@@ -51,10 +51,11 @@ const definePlanStep = (t: JSONTypes) =>
   t.object({
     type: t.literal(TaskType.plan_step),
     actionType: t.nativeEnum(PlanningAgentActionType),
+    stepNumber: t.number(),
     title: t.string(),
     instructions: t.string(),
-    filePath: t.string(),
-    exitCriteria: t.string(),
+    filePath: t.string().optional(),
+    exitCriteria: t.string().optional(),
     dependencies: t.string().optional(),
   });
 
@@ -95,7 +96,9 @@ export class EventsTable extends BaseTable {
         }),
         t.object({
           type: t.literal(TaskType.plan),
-          steps: t.array(definePlanStep(t)),
+          title: t.string(),
+          description: t.string().optional(),
+          totalSteps: t.number(),
         }),
         definePlanStep(t),
         t.object({
