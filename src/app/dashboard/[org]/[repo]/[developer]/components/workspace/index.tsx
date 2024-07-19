@@ -152,7 +152,7 @@ const Workspace: React.FC<WorkspaceProps> = ({
                       {selectedTask.plan?.steps?.length ?? 1}:{" "}
                     </span>
                     {selectedTask.plan
-                      ? selectedTask.plan.steps?.[selectedTask.currentPlanStep ?? 0]
+                      ? selectedTask.plan.steps?.[0]
                           ?.name ?? ""
                       : ""}
                   </div>
