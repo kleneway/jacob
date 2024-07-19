@@ -50,8 +50,8 @@ const Dashboard: React.FC<DashboardParams> = ({
   const [selectedTask, setSelectedTask] = useState<Task | undefined>(
     tasks?.[0],
   );
-  const [plan, setPlan] = useState<Plan | undefined>(undefined);
-  const [planSteps, setPlanSteps] = useState<PlanStep[]>([]);
+  const [plan, setPlan] = useState<Plan | undefined>();
+  const [planSteps, setPlanSteps] = useState<PlanStep[]>();
 
   const [selectedTodo, setSelectedTodo] = useState<Todo | undefined>(undefined);
 
@@ -88,19 +88,19 @@ const Dashboard: React.FC<DashboardParams> = ({
   }, [todos]);
 
   useEffect(() => {
-    if (planData) {
+    if (planData !== undefined) {
       setPlan(planData);
     }
   }, [planData]);
 
   useEffect(() => {
-    if (planStepsData) {
+    if (planStepsData !== undefined) {
       setPlanSteps(planStepsData);
     }
   }, [planStepsData]);
 
-  if (planError || planStepsError)
-    console.error("Error fetching plan data:", planError || planStepsError);
+  if (planError ?? planStepsError)
+    console.error("Error fetching plan data:", planError ?? planStepsError);
 
   api.events.onAdd.useSubscription(
     { org, repo },
