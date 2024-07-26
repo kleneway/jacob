@@ -60,7 +60,7 @@ const Dashboard: React.FC<DashboardParams> = ({
     projectId: project.id,
     developerId,
   });
-  const { data: researchItems } = api.research.getAll.useQuery(
+  const { data: researchItems = [] } = api.research.getAll.useQuery(
     { taskId: selectedTask?.id ?? 0 },
     {
       enabled: !!selectedTask?.id,
@@ -340,7 +340,7 @@ const Dashboard: React.FC<DashboardParams> = ({
             setSelectedIcon={setSelectedIcon}
             setSelectedTask={setSelectedTask}
             onRemoveTask={onRemoveTask}
-            researchItems={researchItems}
+            researchItems={researchItems ?? []}
           />
         </div>
       </div>
