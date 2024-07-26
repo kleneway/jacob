@@ -18,6 +18,11 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ selectedIcon, onIconClick }) => {
+  interface IconData {
+    icon: IconDefinition;
+    name: SidebarIcon;
+  }
+
   const icons = [
     { icon: faClipboardList, name: SidebarIcon.Plan },
     { icon: faCode, name: SidebarIcon.Code },
@@ -27,11 +32,13 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedIcon, onIconClick }) => {
     { icon: faPaintBrush, name: SidebarIcon.Design },
     { icon: faCommentDots, name: SidebarIcon.Prompts },
     { icon: faSearch, name: SidebarIcon.Research },
-  ];
+  ] as const;
+
+  const iconData: IconData[] = icons;
 
   return (
     <div className="flex h-full w-12 flex-col items-center space-y-1 bg-gray-800 text-white">
-      {icons.map(({ icon, name }) => (
+      {iconData.map(({ icon, name }) => (
         <div
           className={`w-full ${selectedIcon === name ? "bg-gray-900/50" : ""} p-4 text-center`}
           key={name}
@@ -46,7 +53,7 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedIcon, onIconClick }) => {
           </div>
         </div>
       ))}
-      {icons.map(({ name }) => (
+      {iconData.map(({ name }) => (
         <Tooltip id={name} key={name} />
       ))}
     </div>
