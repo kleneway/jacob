@@ -11,7 +11,9 @@ interface ResearchProps {
 }
 
 const Research: React.FC<ResearchProps> = ({ taskId }) => {
-  const { data: researchItems } = api.research.getAll.useQuery<RouterOutputs["research"]["getAll"]>({
+  const { data: researchItems } = api.research.getAll.useQuery<
+    RouterOutputs["research"]["getAll"]
+  >({
     taskId,
   });
 
@@ -20,7 +22,7 @@ const Research: React.FC<ResearchProps> = ({ taskId }) => {
       <h2 className="text-lg font-semibold text-white">Research</h2>
       <hr className="my-2 border-t border-gray-700" />
       <ul>
-        {researchItems && researchItems.map((item) => (
+        {researchItems?.map((item) => (
           <li key={item.id} className="mb-4">
             <p className="font-medium text-gray-300">{item.question}</p>
             <div className="mt-2 text-gray-400">
