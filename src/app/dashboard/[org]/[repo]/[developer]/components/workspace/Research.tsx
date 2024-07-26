@@ -10,25 +10,23 @@ interface ResearchProps {
   taskId: number;
 }
 
-interface ResearchItem {
+type ResearchItem = {
   id: number;
   question: string;
   answer: string;
-}
+};
 
 const Research: React.FC<ResearchProps> = ({ taskId }) => {
-  const { data: researchItems } = api.research.getAll.useQuery({
+  const { data: researchItems } = api.research.getAll.useQuery<ResearchItem[]>({
     taskId,
   });
-
-  const typedResearchItems = researchItems as ResearchItem[] | undefined;
 
   return (
     <div className="p-4">
       <h2 className="text-lg font-semibold text-white">Research</h2>
       <hr className="my-2 border-t border-gray-700" />
       <ul>
-        {typedResearchItems?.map((item) => (
+        {researchItems?.map((item) => (
           <li key={item.id} className="mb-4">
             <p className="font-medium text-gray-300">{item.question}</p>
             <div className="mt-2 text-gray-400">
@@ -42,3 +40,5 @@ const Research: React.FC<ResearchProps> = ({ taskId }) => {
 };
 
 export default Research;
+
+
