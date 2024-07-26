@@ -17,7 +17,7 @@ type ResearchItem = {
 };
 
 const Research: React.FC<ResearchProps> = ({ taskId }) => {
-  const { data: researchItems } = api.research.getAll.useQuery<ResearchItem[]>({
+  const { data: researchItems } = api.research.getAll.useQuery({
     taskId,
   });
 
@@ -26,11 +26,11 @@ const Research: React.FC<ResearchProps> = ({ taskId }) => {
       <h2 className="text-lg font-semibold text-white">Research</h2>
       <hr className="my-2 border-t border-gray-700" />
       <ul>
-        {researchItems?.map((item) => (
-          <li key={item.id} className="mb-4">
-            <p className="font-medium text-gray-300">{item.question}</p>
+        {(researchItems as ResearchItem[] | undefined)?.map((item) => (
+          <li key={item?.id ?? 'unknown'} className="mb-4">
+            <p className="font-medium text-gray-300">{item?.question ?? 'No question available'}</p>
             <div className="mt-2 text-gray-400">
-              <Markdown remarkPlugins={[gfm]}>{item.answer}</Markdown>
+              <Markdown remarkPlugins={[gfm]}>{item?.answer ?? 'No answer available'}</Markdown>
             </div>
           </li>
         ))}
@@ -40,5 +40,3 @@ const Research: React.FC<ResearchProps> = ({ taskId }) => {
 };
 
 export default Research;
-
-
