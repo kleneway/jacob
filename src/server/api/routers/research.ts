@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
-import { ResearchTable } from "~/server/db/tables/research.table";
+import { type ResearchTable } from "~/server/db/tables/research.table";
 
 export const researchRouter = createTRPCRouter({
   getAll: protectedProcedure
