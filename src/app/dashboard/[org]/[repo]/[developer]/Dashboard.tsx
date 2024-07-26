@@ -60,12 +60,13 @@ const Dashboard: React.FC<DashboardParams> = ({
     projectId: project.id,
     developerId,
   });
-  const { data: researchItems = [] as Research[] } = api.research.getAll.useQuery(
-    { taskId: selectedTask?.id ?? 0 },
-    {
-      enabled: !!selectedTask?.id,
-    },
-  );
+  const { data: researchItems = [] as Research[] } =
+    api.research.getAll.useQuery(
+      { taskId: selectedTask?.id ?? 0 },
+      {
+        enabled: !!selectedTask?.id,
+      },
+    );
   useEffect(() => {
     if (todos?.length && todos[0]) {
       onNewTodoSelected(todos[0]);

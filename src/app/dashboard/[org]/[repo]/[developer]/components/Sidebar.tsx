@@ -1,4 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import {
   faCode,
   faPaintBrush,
@@ -34,7 +35,7 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedIcon, onIconClick }) => {
     { icon: faSearch, name: SidebarIcon.Research },
   ] as const;
 
-  const iconData: IconData[] = icons;
+  const iconData: readonly IconData[] = icons;
 
   return (
     <div className="flex h-full w-12 flex-col items-center space-y-1 bg-gray-800 text-white">
