@@ -60,6 +60,13 @@ const Dashboard: React.FC<DashboardParams> = ({
     projectId: project.id,
     developerId,
   });
+  const { data: researchItems = [] as Research[] | undefined } =
+    api.research.getAll.useQuery(
+      { taskId: selectedTask?.id ?? 0 },
+      {
+        enabled: !!selectedTask?.id,
+      },
+    );
   useEffect(() => {
     if (todos?.length && todos[0]) {
       onNewTodoSelected(todos[0]);
@@ -334,6 +341,7 @@ const Dashboard: React.FC<DashboardParams> = ({
             setSelectedIcon={setSelectedIcon}
             setSelectedTask={setSelectedTask}
             onRemoveTask={onRemoveTask}
+            researchItems={researchItems ?? []}
           />
         </div>
       </div>

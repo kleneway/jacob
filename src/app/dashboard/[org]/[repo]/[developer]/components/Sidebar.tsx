@@ -1,4 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import {
   faCode,
   faPaintBrush,
@@ -7,6 +8,7 @@ import {
   faCommentDots,
   faBug,
   faCodeBranch,
+  faSearch,
 } from "@fortawesome/free-solid-svg-icons";
 import { Tooltip } from "react-tooltip";
 import { SidebarIcon } from "~/types";
@@ -17,6 +19,11 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ selectedIcon, onIconClick }) => {
+  interface IconData {
+    icon: IconDefinition;
+    name: SidebarIcon;
+  }
+
   const icons = [
     { icon: faClipboardList, name: SidebarIcon.Plan },
     { icon: faCode, name: SidebarIcon.Code },
@@ -25,7 +32,11 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedIcon, onIconClick }) => {
     { icon: faCodeBranch, name: SidebarIcon.PullRequests },
     { icon: faPaintBrush, name: SidebarIcon.Design },
     { icon: faCommentDots, name: SidebarIcon.Prompts },
-  ];
+    { icon: faSearch, name: SidebarIcon.Research },
+  ] as const;
+
+  const iconData: ReadonlyArray<IconData> =
+    icons as unknown as ReadonlyArray<IconData>;
 
   return (
     <div className="flex h-full w-12 flex-col items-center space-y-1 bg-gray-800 text-white">
