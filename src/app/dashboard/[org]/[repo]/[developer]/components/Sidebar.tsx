@@ -7,6 +7,7 @@ import {
   faCommentDots,
   faBug,
   faCodeBranch,
+  faSearch,
 } from "@fortawesome/free-solid-svg-icons";
 import { Tooltip } from "react-tooltip";
 import { SidebarIcon } from "~/types";
@@ -25,6 +26,7 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedIcon, onIconClick }) => {
     { icon: faCodeBranch, name: SidebarIcon.PullRequests },
     { icon: faPaintBrush, name: SidebarIcon.Design },
     { icon: faCommentDots, name: SidebarIcon.Prompts },
+    { icon: faSearch, name: SidebarIcon.Research },
   ];
 
   return (
