@@ -50,7 +50,7 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedIcon, onIconClick }) => {
             data-tooltip-id={name}
             data-tooltip-content={name}
           >
-            <FontAwesomeIcon icon={icon as IconDefinition} size={"lg"} />
+            <FontAwesomeIcon icon={icon} size={"lg"} />
           </div>
         </div>
       ))}
