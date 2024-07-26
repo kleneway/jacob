@@ -64,7 +64,7 @@ const Dashboard: React.FC<DashboardParams> = ({
     { taskId: selectedTask?.id ?? 0 },
     {
       enabled: !!selectedTask?.id,
-    }
+    },
   );
   useEffect(() => {
     if (todos?.length && todos[0]) {

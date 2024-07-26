@@ -6,7 +6,7 @@ export const researchRouter = createTRPCRouter({
     .input(
       z.object({
         taskId: z.number(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const { taskId } = input;
