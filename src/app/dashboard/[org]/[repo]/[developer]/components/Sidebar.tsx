@@ -35,7 +35,8 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedIcon, onIconClick }) => {
     { icon: faSearch, name: SidebarIcon.Research },
   ] as const;
 
-  const iconData: ReadonlyArray<IconData> = icons as unknown as ReadonlyArray<IconData>;
+  const iconData: ReadonlyArray<IconData> =
+    icons as unknown as ReadonlyArray<IconData>;
 
   return (
     <div className="flex h-full w-12 flex-col items-center space-y-1 bg-gray-800 text-white">

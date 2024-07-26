@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { type RouterOutputs, type ResearchItem } from "~/trpc/shared";
+import { type RouterOutputs } from "~/trpc/shared";
 import { api } from "~/trpc/react";
 import Markdown from "react-markdown";
 import gfm from "remark-gfm";
@@ -10,17 +10,25 @@ interface ResearchProps {
   taskId: number;
 }
 
+interface ResearchItem {
+  id: number;
+  question: string;
+  answer: string;
+}
+
 const Research: React.FC<ResearchProps> = ({ taskId }) => {
   const { data: researchItems } = api.research.getAll.useQuery({
     taskId,
-  }) as { data: ResearchItem[] | undefined };
+  });
+
+  const typedResearchItems = researchItems as ResearchItem[] | undefined;
 
   return (
     <div className="p-4">
       <h2 className="text-lg font-semibold text-white">Research</h2>
       <hr className="my-2 border-t border-gray-700" />
       <ul>
-        {researchItems?.map((item: ResearchItem) => (
+        {typedResearchItems?.map((item) => (
           <li key={item.id} className="mb-4">
             <p className="font-medium text-gray-300">{item.question}</p>
             <div className="mt-2 text-gray-400">
