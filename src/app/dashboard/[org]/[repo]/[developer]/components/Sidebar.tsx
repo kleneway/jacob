@@ -24,7 +24,7 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedIcon, onIconClick }) => {
     name: SidebarIcon;
   }
 
-  const icons = ([
+  const icons = [
     { icon: faClipboardList, name: SidebarIcon.Plan },
     { icon: faCode, name: SidebarIcon.Code },
     { icon: faTerminal, name: SidebarIcon.Terminal },
@@ -33,7 +33,9 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedIcon, onIconClick }) => {
     { icon: faPaintBrush, name: SidebarIcon.Design },
     { icon: faCommentDots, name: SidebarIcon.Prompts },
     { icon: faSearch, name: SidebarIcon.Research },
-  ] as const) satisfies readonly IconData[];
+  ] as const;
+
+  const iconData: ReadonlyArray<IconData> = icons as unknown as ReadonlyArray<IconData>;
 
   return (
     <div className="flex h-full w-12 flex-col items-center space-y-1 bg-gray-800 text-white">
