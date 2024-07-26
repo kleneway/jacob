@@ -27,10 +27,14 @@ const Research: React.FC<ResearchProps> = ({ taskId }) => {
       <hr className="my-2 border-t border-gray-700" />
       <ul>
         {(researchItems as ResearchItem[] | undefined)?.map((item) => (
-          <li key={item?.id ?? 'unknown'} className="mb-4">
-            <p className="font-medium text-gray-300">{item?.question ?? 'No question available'}</p>
+          <li key={item?.id ?? "unknown"} className="mb-4">
+            <p className="font-medium text-gray-300">
+              {item?.question ?? "No question available"}
+            </p>
             <div className="mt-2 text-gray-400">
-              <Markdown remarkPlugins={[gfm]}>{item?.answer ?? 'No answer available'}</Markdown>
+              <Markdown remarkPlugins={[gfm]}>
+                {item?.answer ?? "No answer available"}
+              </Markdown>
             </div>
           </li>
         ))}

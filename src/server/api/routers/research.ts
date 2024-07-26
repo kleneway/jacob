@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { ResearchTable } from "~/server/db/tables/research.table";
+import { type Research } from "~/types";
 
 export const researchRouter = createTRPCRouter({
   getAll: protectedProcedure
@@ -11,7 +12,7 @@ export const researchRouter = createTRPCRouter({
     )
     .query(async ({ ctx, input }) => {
       const { taskId } = input;
-      return ctx.db.research.findMany({
+      return ctx.db.research.findMany<Research[]>({
         where: {
           taskId,
         },
