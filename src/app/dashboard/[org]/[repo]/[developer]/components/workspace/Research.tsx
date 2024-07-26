@@ -34,5 +34,3 @@ const Research: React.FC<ResearchProps> = ({ taskId }) => {
 };
 
 export default Research;
-
-
