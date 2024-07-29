@@ -313,11 +313,9 @@ export const eventsRouter = createTRPCRouter({
       }),
     )
     .query(async ({ input: { taskId } }) => {
-      const researchItems = await db.research
-        .where({ taskId })
-        .order({
-          createdAt: "DESC",
-        });
+      const researchItems = await db.research.where({ taskId }).order({
+        createdAt: "DESC",
+      });
 
       return researchItems.map((item) => ({
         question: item.question,

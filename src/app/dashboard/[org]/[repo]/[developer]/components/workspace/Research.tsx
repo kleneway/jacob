@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { api } from '@/utils/api';
-import { ResearchItem } from '@/types';
-import ReactMarkdown from 'react-markdown';
+import React, { useEffect, useState } from "react";
+import { api } from '../../../../../../../../utils/api';
+import { type ResearchItem } from "@/types";
+import ReactMarkdown from "react-markdown";
 
 interface ResearchProps {
   taskId: string;
@@ -10,7 +10,11 @@ interface ResearchProps {
 const Research: React.FC<ResearchProps> = ({ taskId }) => {
   const [researchItems, setResearchItems] = useState<ResearchItem[]>([]);
 
-  const { data: fetchedResearchItems, isLoading, error } = api.events.getResearchItems.useQuery({ taskId });
+  const {
+    data: fetchedResearchItems,
+    isLoading,
+    error,
+  } = api.events.getResearchItems.useQuery({ taskId });
 
   useEffect(() => {
     if (fetchedResearchItems) {
@@ -18,18 +22,24 @@ const Research: React.FC<ResearchProps> = ({ taskId }) => {
     }
   }, [fetchedResearchItems]);
 
-  if (isLoading) return <div className="text-center">Loading research items...</div>;
-  if (error) return <div className="text-center text-red-500">Error loading research items</div>;
+  if (isLoading)
+    return <div className="text-center">Loading research items...</div>;
+  if (error)
+    return (
+      <div className="text-center text-red-500">
+        Error loading research items
+      </div>
+    );
 
   return (
     <div className="space-y-4">
-      <h2 className="text-2xl font-bold mb-4">Research</h2>
+      <h2 className="mb-4 text-2xl font-bold">Research</h2>
       {researchItems.length === 0 ? (
         <p>No research items found for this task.</p>
       ) : (
         researchItems.map((item, index) => (
-          <div key={index} className="bg-white shadow rounded-lg p-4">
-            <h3 className="text-lg font-semibold mb-2">{item.question}</h3>
+          <div key={index} className="rounded-lg bg-white p-4 shadow">
+            <h3 className="mb-2 text-lg font-semibold">{item.question}</h3>
             <div className="prose max-w-none">
               <ReactMarkdown>{item.answer}</ReactMarkdown>
             </div>
