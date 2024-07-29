@@ -65,7 +65,7 @@ const Dashboard: React.FC<DashboardParams> = ({
     { taskId: selectedTask?.id ?? "" },
     {
       enabled: !!selectedTask?.id,
-    }
+    },
   );
 
   useEffect(() => {
