@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import ReactMarkdown from 'react-markdown';
+import React, { useEffect, useState } from "react";
+import ReactMarkdown from "react-markdown";
 
 interface ResearchItem {
   question: string;
@@ -25,15 +25,13 @@ const Research: React.FC<ResearchProps> = ({ taskId }) => {
   }, [taskId]);
 
   return (
-    <div className="p-4 space-y-4">
-      <h2 className="text-2xl font-bold mb-4">Research</h2>
+    <div className="space-y-4 p-4">
+      <h2 className="mb-4 text-2xl font-bold">Research</h2>
       {researchItems.map((item, index) => (
-        <div key={index} className="bg-white shadow rounded-lg p-4">
-          <h3 className="text-lg font-semibold mb-2">{item.question}</h3>
+        <div key={index} className="rounded-lg bg-white p-4 shadow">
+          <h3 className="mb-2 text-lg font-semibold">{item.question}</h3>
           <div className="prose max-w-none">
-            <ReactMarkdown>
-              {item.answer}
-            </ReactMarkdown>
+            <ReactMarkdown>{item.answer}</ReactMarkdown>
           </div>
         </div>
       ))}
