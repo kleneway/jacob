@@ -42,6 +42,7 @@ export enum SidebarIcon {
   Prompts = "Prompts",
   Issues = "Issues",
   PullRequests = "Pull Requests",
+  Research = "Research",
 }
 
 export type Comment = {
