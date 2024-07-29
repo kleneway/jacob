@@ -60,6 +60,14 @@ const Dashboard: React.FC<DashboardParams> = ({
     projectId: project.id,
     developerId,
   });
+
+  const { data: researchItems } = api.events.getResearchItems.useQuery(
+    { taskId: selectedTask?.id ?? "" },
+    {
+      enabled: !!selectedTask?.id,
+    }
+  );
+
   useEffect(() => {
     if (todos?.length && todos[0]) {
       onNewTodoSelected(todos[0]);
@@ -333,6 +341,7 @@ const Dashboard: React.FC<DashboardParams> = ({
             selectedTask={selectedTask}
             setSelectedIcon={setSelectedIcon}
             setSelectedTask={setSelectedTask}
+            researchItems={researchItems}
             onRemoveTask={onRemoveTask}
           />
         </div>
