@@ -392,6 +392,6 @@ const createTaskForIssue = (issue: Issue, events: Event[], repo: string) => {
     commands,
     codeFiles,
     prompts,
+    research,
   } as Task;
 };
-    research,

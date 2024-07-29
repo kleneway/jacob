@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import ReactMarkdown from 'react-markdown';
+import React, { useEffect, useState } from "react";
+import ReactMarkdown from "react-markdown";
 
 interface ResearchItem {
   id: string;
@@ -19,12 +19,12 @@ const Research: React.FC<ResearchProps> = ({ issueId }) => {
       try {
         const response = await fetch(`/api/research?issueId=${issueId}`);
         if (!response.ok) {
-          throw new Error('Failed to fetch research items');
+          throw new Error("Failed to fetch research items");
         }
         const data = await response.json();
         setResearchItems(data);
       } catch (error) {
-        console.error('Error fetching research items:', error);
+        console.error("Error fetching research items:", error);
       }
     };
 
@@ -34,8 +34,8 @@ const Research: React.FC<ResearchProps> = ({ issueId }) => {
   return (
     <div className="space-y-4">
       {researchItems.map((item) => (
-        <div key={item.id} className="bg-white shadow rounded-lg p-4">
-          <h3 className="text-lg font-semibold mb-2">{item.question}</h3>
+        <div key={item.id} className="rounded-lg bg-white p-4 shadow">
+          <h3 className="mb-2 text-lg font-semibold">{item.question}</h3>
           <div className="prose prose-sm">
             <ReactMarkdown>{item.answer}</ReactMarkdown>
           </div>
