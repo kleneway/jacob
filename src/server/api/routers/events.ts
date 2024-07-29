@@ -126,6 +126,13 @@ type EventPayload =
   | PullRequest
   | Command;
 
+export type Research = {
+  type: TaskType.research;
+  id: string;
+  question: string;
+  answer: string;
+};
+
 export interface Todo extends ExtractedIssueInfo {
   id: number;
   projectId: number;
@@ -297,6 +304,28 @@ export const eventsRouter = createTRPCRouter({
       await redisPub.quit();
       return event;
     }),
+  getResearchItems: protectedProcedure
+    .input(
+      z.object({
+        issueId: z.number(),
+      }),
+    )
+    .query(async ({ input: { issueId } }) => {
+      try {
+        const researchEvents = await db.events
+          .where({ type: TaskType.research, issueId })
+          .order({
+            createdAt: "DESC",
+          });
+
+        const researchItems = researchEvents.map((event) => event.payload as Research);
+
+        return researchItems;
+      } catch (error) {
+        console.error("Error fetching research items:", error);
+        throw new Error("Failed to fetch research items");
+      }
+    }),
 });
 
 const createTaskForIssue = (issue: Issue, events: Event[], repo: string) => {
@@ -339,6 +368,11 @@ const createTaskForIssue = (issue: Issue, events: Event[], repo: string) => {
 
   let imageUrl = "";
   if (issue) {
+  // Get the research items associated with the issue
+  const research = events
+    .filter((e) => e.type === TaskType.research && e.issueId === issueId)
+    .map((e) => e.payload as Research);
+
     imageUrl = getSnapshotUrl(issue.description) ?? "";
   }
 
@@ -360,3 +394,4 @@ const createTaskForIssue = (issue: Issue, events: Event[], repo: string) => {
     prompts,
   } as Task;
 };
+    research,
