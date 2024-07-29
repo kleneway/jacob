@@ -331,7 +331,6 @@ const Dashboard: React.FC<DashboardParams> = ({
             }
             selectedIcon={selectedIcon}
             selectedTask={selectedTask}
-            taskId={selectedTask?.id}
             setSelectedIcon={setSelectedIcon}
             setSelectedTask={setSelectedTask}
             onRemoveTask={onRemoveTask}
