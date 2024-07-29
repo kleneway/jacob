@@ -140,6 +140,10 @@ const Dashboard: React.FC<DashboardParams> = ({
             // add the prompt to the task.prompts array
             newTask.prompts = [...(newTask.prompts ?? []), payload];
           }
+          if (payload.type === TaskType.research) {
+            // add the research to the task.research array
+            newTask.research = [...(newTask.research ?? []), payload];
+          }
 
           // update the task in the tasks array
           setTasks((tasks) =>
