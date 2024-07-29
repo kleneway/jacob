@@ -15,6 +15,7 @@ import {
   type Event,
   type Task as EventsTask,
   EventsTable,
+  ResearchTable,
 } from "~/server/db/tables/events.table";
 import { newRedisConnection } from "~/server/utils/redis";
 import { type ExtractedIssueInfo } from "~/server/code/extractedIssue";
@@ -30,6 +31,7 @@ export interface Task extends EventsTask {
   commands?: Command[];
   codeFiles?: Code[];
   prompts?: Prompt[];
+  researchItems?: ResearchItem[];
 }
 
 export type Code = {
@@ -115,6 +117,12 @@ export type Command = {
   exitCode: number | null;
 };
 
+export type ResearchItem = {
+  type: TaskType.research;
+  question: string;
+  answer: string;
+};
+
 type EventPayload =
   | Task
   | Code
@@ -124,7 +132,8 @@ type EventPayload =
   | Prompt
   | Issue
   | PullRequest
-  | Command;
+  | Command
+  | ResearchItem;
 
 export interface Todo extends ExtractedIssueInfo {
   id: number;
@@ -297,6 +306,24 @@ export const eventsRouter = createTRPCRouter({
       await redisPub.quit();
       return event;
     }),
+  getResearchItems: protectedProcedure
+    .input(
+      z.object({
+        taskId: z.string(),
+      }),
+    )
+    .query(async ({ input: { taskId } }) => {
+      const researchItems = await db.research
+        .where({ taskId })
+        .order({
+          createdAt: "DESC",
+        });
+
+      return researchItems.map((item) => ({
+        question: item.question,
+        answer: item.answer,
+      }));
+    }),
 });
 
 const createTaskForIssue = (issue: Issue, events: Event[], repo: string) => {
@@ -337,6 +364,11 @@ const createTaskForIssue = (issue: Issue, events: Event[], repo: string) => {
     .filter((e) => e.type === TaskType.prompt && e.issueId === issueId)
     .map((e) => e.payload as Prompt);
 
+  // Get the research items associated with the issue
+  const researchItems = events
+    .filter((e) => e.type === TaskType.research && e.issueId === issueId)
+    .map((e) => e.payload as ResearchItem);
+
   let imageUrl = "";
   if (issue) {
     imageUrl = getSnapshotUrl(issue.description) ?? "";
@@ -358,5 +390,6 @@ const createTaskForIssue = (issue: Issue, events: Event[], repo: string) => {
     commands,
     codeFiles,
     prompts,
+    researchItems,
   } as Task;
 };
