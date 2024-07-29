@@ -41,6 +41,7 @@ export enum SidebarIcon {
   Plan = "Plan",
   Prompts = "Prompts",
   Issues = "Issues",
+  Research = "Research",
   PullRequests = "Pull Requests",
 }
 
@@ -146,4 +147,10 @@ export interface Research {
   question: string;
   answer: string;
   issueId: number;
+}
+
+export interface ResearchItem {
+  id: string;
+  question: string;
+  answer: string;
 }
