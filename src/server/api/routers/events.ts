@@ -297,6 +297,26 @@ export const eventsRouter = createTRPCRouter({
       await redisPub.quit();
       return event;
     }),
+  getResearchItems: protectedProcedure
+    .input(
+      z.object({
+        taskId: z.string(),
+      }),
+    )
+    .query(async ({ input: { taskId } }) => {
+      const researchItems = await db.events
+        .where({ type: TaskType.research })
+        .where({ taskId })
+        .order({
+          createdAt: "DESC",
+        });
+
+      return researchItems.map((item) => ({
+        id: item.id,
+        question: item.payload.question,
+        answer: item.payload.answer,
+      }));
+    }),
 });
 
 const createTaskForIssue = (issue: Issue, events: Event[], repo: string) => {
