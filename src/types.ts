@@ -37,6 +37,7 @@ export enum SidebarIcon {
   None = "None",
   Code = "Code",
   Design = "Design",
+  Research = "Research",
   Terminal = "Terminal",
   Plan = "Plan",
   Prompts = "Prompts",
