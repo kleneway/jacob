@@ -297,6 +297,31 @@ export const eventsRouter = createTRPCRouter({
       await redisPub.quit();
       return event;
     }),
+  getResearchItems: protectedProcedure
+    .input(
+      z.object({
+        taskId: z.string(),
+      }),
+    )
+    .query(async ({ input: { taskId } }) => {
+      try {
+        const researchItems = await db.events
+          .where({ type: TaskType.research })
+          .where({ taskId })
+          .order({
+            createdAt: "DESC",
+          });
+
+        return researchItems.map((item) => ({
+          id: item.id,
+          question: (item.payload as { question: string }).question,
+          answer: (item.payload as { answer: string }).answer,
+        }));
+      } catch (error) {
+        console.error("Error fetching research items:", error);
+        throw new Error("Failed to fetch research items");
+      }
+    }),
 });
 
 const createTaskForIssue = (issue: Issue, events: Event[], repo: string) => {
