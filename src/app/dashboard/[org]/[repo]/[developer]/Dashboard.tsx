@@ -45,7 +45,7 @@ const Dashboard: React.FC<DashboardParams> = ({
   );
   const [tasks, setTasks] = useState<Task[]>(_tasks ?? []);
   const [selectedTask, setSelectedTask] = useState<Task | undefined>(
-    tasks?.[0],
+    tasks[0],
   );
 
   const [researchItems, setResearchItems] = useState<ResearchItem[]>([]);
@@ -70,7 +70,7 @@ const Dashboard: React.FC<DashboardParams> = ({
     issueId: selectedTask?.issueId,
   });
   useEffect(() => {
-    if (todos?.length && todos[0]) {
+    if (todos && todos.length > 0) {
       onNewTodoSelected(todos[0]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -158,7 +158,7 @@ const Dashboard: React.FC<DashboardParams> = ({
           if (payload.type === TaskType.research) {
             newTask.researchItems = [
               ...(newTask.researchItems ?? []),
-              payload as ResearchItem,
+              payload,
             ];
           }
 
@@ -200,7 +200,7 @@ const Dashboard: React.FC<DashboardParams> = ({
 
   const onRemoveTask = (taskId: string) => {
     console.log("Removing task: ", taskId);
-    setTasks((tasks) => tasks?.filter((t) => t.id !== taskId));
+    setTasks((tasks) => tasks.filter((t) => t.id !== taskId));
   };
 
   const resetMessages = (messages?: Message[] | undefined) => {
@@ -286,7 +286,7 @@ const Dashboard: React.FC<DashboardParams> = ({
       }
 
       // Remove this todo from the list of todos and optimistically update the UI
-      const newTodos = todos?.filter((t) => t.id !== selectedTodo.id) ?? [];
+      const newTodos = todos ? todos.filter((t) => t.id !== selectedTodo.id) : [];
       newTodos.length ? onNewTodoSelected(newTodos[0]!) : resetMessages();
 
       await trpcClient.todos.archive.mutate({
@@ -305,10 +305,10 @@ const Dashboard: React.FC<DashboardParams> = ({
   //** End Task */
 
   const tasksInProgressOrDone =
-    tasks?.filter(
+    tasks.filter(
       (t) =>
         t.status === TaskStatus.IN_PROGRESS || t.status === TaskStatus.DONE,
-    ) ?? [];
+    );
 
   return (
     <div className="h-screen w-full bg-gray-800 text-left ">
@@ -333,7 +333,7 @@ const Dashboard: React.FC<DashboardParams> = ({
         </div>
         <div className="col-span-2 h-screen max-w-7xl bg-gray-900/70">
           <Todos
-            todos={todos ?? []}
+            todos={todos || []}
             updateTodoPositions={updateTodoPositions}
             isLoading={loadingTodos}
           />
@@ -344,11 +344,11 @@ const Dashboard: React.FC<DashboardParams> = ({
         >
           <Workspace
             tasks={
-              tasks?.filter(
+              tasks.filter(
                 (t) =>
                   t.status === TaskStatus.IN_PROGRESS ||
                   t.status === TaskStatus.DONE,
-              ) ?? []
+              )
             }
             selectedIcon={selectedIcon}
             selectedTask={selectedTask}
