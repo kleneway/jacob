@@ -14,6 +14,7 @@ import { trpcClient } from "~/trpc/client";
 import { type ResearchItem } from "~/types";
 import { DEVELOPERS } from "~/data/developers";
 import { TaskType } from "~/server/db/enums";
+import { Research } from "./components/workspace/Research";
 import { getSidebarIconForType } from "~/app/utils";
 import Todos from "./components/todos";
 import { toast } from "react-toastify";
@@ -66,6 +67,7 @@ const Dashboard: React.FC<DashboardParams> = ({
   const { data: fetchedResearchItems } = api.research.getAll.useQuery({
     projectId: project.id,
     developerId,
+    issueId: selectedTask?.issueId,
   });
   useEffect(() => {
     if (todos?.length && todos[0]) {
@@ -154,7 +156,7 @@ const Dashboard: React.FC<DashboardParams> = ({
             newTask.prompts = [...(newTask.prompts ?? []), payload];
           }
           if (payload.type === TaskType.research) {
-            newTask.researchItems = [...(newTask.researchItems ?? []), payload];
+            newTask.researchItems = [...(newTask.researchItems ?? []), payload as ResearchItem];
           }
 
           // update the task in the tasks array
