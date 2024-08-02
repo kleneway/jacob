@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { db } from "~/server/db/db";
-import { TaskType, type TodoStatus } from "~/server/db/enums";
+import { TaskType, type TodoStatus, type Research } from "~/server/db/enums";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 
 import { TaskStatus, TaskSubType } from "~/server/db/enums";
@@ -118,6 +118,7 @@ export type Command = {
 type EventPayload =
   | Task
   | Code
+  | Research
   | Design
   | Terminal
   | Plan
@@ -337,6 +338,11 @@ const createTaskForIssue = (issue: Issue, events: Event[], repo: string) => {
     .filter((e) => e.type === TaskType.prompt && e.issueId === issueId)
     .map((e) => e.payload as Prompt);
 
+  // Get the research items associated with the issue
+  const researchItems = events
+    .filter((e) => e.type === TaskType.research && e.issueId === issueId)
+    .map((e) => e.payload as Research);
+
   let imageUrl = "";
   if (issue) {
     imageUrl = getSnapshotUrl(issue.description) ?? "";
@@ -358,5 +364,6 @@ const createTaskForIssue = (issue: Issue, events: Event[], repo: string) => {
     commands,
     codeFiles,
     prompts,
+    researchItems,
   } as Task;
 };

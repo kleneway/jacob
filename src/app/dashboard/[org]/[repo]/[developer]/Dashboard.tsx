@@ -11,6 +11,7 @@ import { TaskStatus } from "~/server/db/enums";
 import { type Todo, type Task } from "~/server/api/routers/events";
 import { api } from "~/trpc/react";
 import { trpcClient } from "~/trpc/client";
+import { useQuery } from "@trpc/react-query";
 import { DEVELOPERS } from "~/data/developers";
 import { TaskType } from "~/server/db/enums";
 import { getSidebarIconForType } from "~/app/utils";
@@ -60,6 +61,15 @@ const Dashboard: React.FC<DashboardParams> = ({
     projectId: project.id,
     developerId,
   });
+
+  const { data: researchItems } = useQuery(
+    ["research.getByIssueId", selectedTodo?.issueId],
+    () =>
+      trpcClient.research.getByIssueId.query({
+        issueId: selectedTodo?.issueId ?? "",
+      }),
+    { enabled: !!selectedTodo?.issueId },
+  );
   useEffect(() => {
     if (todos?.length && todos[0]) {
       onNewTodoSelected(todos[0]);
@@ -334,6 +344,7 @@ const Dashboard: React.FC<DashboardParams> = ({
             setSelectedIcon={setSelectedIcon}
             setSelectedTask={setSelectedTask}
             onRemoveTask={onRemoveTask}
+            researchItems={researchItems}
           />
         </div>
       </div>
