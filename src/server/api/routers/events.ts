@@ -118,6 +118,7 @@ export type Command = {
 type EventPayload =
   | Task
   | Code
+  | Research
   | Design
   | Terminal
   | Plan
@@ -125,6 +126,13 @@ type EventPayload =
   | Issue
   | PullRequest
   | Command;
+
+export type Research = {
+  type: TaskType.research;
+  id: string;
+  title: string;
+  content: string;
+};
 
 export interface Todo extends ExtractedIssueInfo {
   id: number;
@@ -337,6 +345,11 @@ const createTaskForIssue = (issue: Issue, events: Event[], repo: string) => {
     .filter((e) => e.type === TaskType.prompt && e.issueId === issueId)
     .map((e) => e.payload as Prompt);
 
+  // Get the research items associated with the issue
+  const researchItems = events
+    .filter((e) => e.type === TaskType.research && e.issueId === issueId)
+    .map((e) => e.payload as Research);
+
   let imageUrl = "";
   if (issue) {
     imageUrl = getSnapshotUrl(issue.description) ?? "";
@@ -358,5 +371,6 @@ const createTaskForIssue = (issue: Issue, events: Event[], repo: string) => {
     commands,
     codeFiles,
     prompts,
+    researchItems,
   } as Task;
 };
