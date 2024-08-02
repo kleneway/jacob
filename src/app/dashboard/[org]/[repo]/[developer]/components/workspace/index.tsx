@@ -17,7 +17,7 @@ import { PromptsComponent } from "./Prompts";
 import { PullRequestComponent } from "./PullRequest";
 import { TerminalComponent } from "./Terminal";
 import Sidebar from "../Sidebar";
-import { ResearchComponent } from "./Research";
+import Research from "./Research";
 
 type WorkspaceProps = {
   tasks: Task[];
@@ -72,7 +72,9 @@ const Workspace: React.FC<WorkspaceProps> = ({
       case SidebarIcon.PullRequests:
         return <PullRequestComponent pullRequest={selectedTask?.pullRequest} />;
       case SidebarIcon.Research:
-        return <ResearchComponent researchItems={selectedTask?.researchItems} />;
+        return (
+          <Research researchItems={selectedTask?.researchItems} />
+        );
       default:
         return null;
     }

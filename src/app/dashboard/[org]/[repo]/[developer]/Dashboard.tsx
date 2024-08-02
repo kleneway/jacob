@@ -351,7 +351,9 @@ const Dashboard: React.FC<DashboardParams> = ({
             setSelectedTask={setSelectedTask}
             onRemoveTask={onRemoveTask}
           />
-          {selectedTask && <Research researchItems={selectedTask.researchItems ?? []} />}
+          {selectedTask && (
+            <Research researchItems={selectedTask.researchItems ?? []} />
+          )}
         </div>
       </div>
     </div>
