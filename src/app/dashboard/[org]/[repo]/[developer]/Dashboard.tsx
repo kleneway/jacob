@@ -14,7 +14,7 @@ import { trpcClient } from "~/trpc/client";
 import { type ResearchItem } from "~/types";
 import { DEVELOPERS } from "~/data/developers";
 import { TaskType } from "~/server/db/enums";
-import { Research } from "./components/workspace/Research";
+import Research from "./components/workspace/Research";
 import { getSidebarIconForType } from "~/app/utils";
 import Todos from "./components/todos";
 import { toast } from "react-toastify";
