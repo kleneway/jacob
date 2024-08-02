@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
+  type Task,
   faTimes,
   faClock,
   faCheckCircle,
@@ -17,6 +18,11 @@ import { PromptsComponent } from "./Prompts";
 import { PullRequestComponent } from "./PullRequest";
 import { TerminalComponent } from "./Terminal";
 import Sidebar from "../Sidebar";
+
+interface ResearchItem {
+  question: string;
+  answer: string;
+}
 import Research from "./Research";
 
 type WorkspaceProps = {
@@ -72,7 +78,7 @@ const Workspace: React.FC<WorkspaceProps> = ({
       case SidebarIcon.PullRequests:
         return <PullRequestComponent pullRequest={selectedTask?.pullRequest} />;
       case SidebarIcon.Research:
-        return <Research researchItems={selectedTask?.researchItems} />;
+        return <Research researchItems={selectedTask?.researchItems as ResearchItem[] | undefined} />;
       default:
         return null;
     }
