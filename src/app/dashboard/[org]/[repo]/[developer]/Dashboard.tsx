@@ -44,9 +44,7 @@ const Dashboard: React.FC<DashboardParams> = ({
     SidebarIcon.Plan,
   );
   const [tasks, setTasks] = useState<Task[]>(_tasks ?? []);
-  const [selectedTask, setSelectedTask] = useState<Task | undefined>(
-    tasks[0],
-  );
+  const [selectedTask, setSelectedTask] = useState<Task | undefined>(tasks[0]);
 
   const [researchItems, setResearchItems] = useState<ResearchItem[]>([]);
   const [selectedTodo, setSelectedTodo] = useState<Todo | undefined>(undefined);
@@ -156,10 +154,7 @@ const Dashboard: React.FC<DashboardParams> = ({
             newTask.prompts = [...(newTask.prompts ?? []), payload];
           }
           if (payload.type === TaskType.research) {
-            newTask.researchItems = [
-              ...(newTask.researchItems ?? []),
-              payload,
-            ];
+            newTask.researchItems = [...(newTask.researchItems ?? []), payload];
           }
 
           // update the task in the tasks array
@@ -286,7 +281,9 @@ const Dashboard: React.FC<DashboardParams> = ({
       }
 
       // Remove this todo from the list of todos and optimistically update the UI
-      const newTodos = todos ? todos.filter((t) => t.id !== selectedTodo.id) : [];
+      const newTodos = todos
+        ? todos.filter((t) => t.id !== selectedTodo.id)
+        : [];
       newTodos.length ? onNewTodoSelected(newTodos[0]!) : resetMessages();
 
       await trpcClient.todos.archive.mutate({
@@ -304,11 +301,9 @@ const Dashboard: React.FC<DashboardParams> = ({
 
   //** End Task */
 
-  const tasksInProgressOrDone =
-    tasks.filter(
-      (t) =>
-        t.status === TaskStatus.IN_PROGRESS || t.status === TaskStatus.DONE,
-    );
+  const tasksInProgressOrDone = tasks.filter(
+    (t) => t.status === TaskStatus.IN_PROGRESS || t.status === TaskStatus.DONE,
+  );
 
   return (
     <div className="h-screen w-full bg-gray-800 text-left ">
@@ -343,13 +338,11 @@ const Dashboard: React.FC<DashboardParams> = ({
           className={`col-span-6 bg-gray-900/90 ${tasksInProgressOrDone.length ? "flex" : "hidden"}`}
         >
           <Workspace
-            tasks={
-              tasks.filter(
-                (t) =>
-                  t.status === TaskStatus.IN_PROGRESS ||
-                  t.status === TaskStatus.DONE,
-              )
-            }
+            tasks={tasks.filter(
+              (t) =>
+                t.status === TaskStatus.IN_PROGRESS ||
+                t.status === TaskStatus.DONE,
+            )}
             selectedIcon={selectedIcon}
             selectedTask={selectedTask}
             setSelectedIcon={setSelectedIcon}
