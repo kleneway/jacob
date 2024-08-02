@@ -3,6 +3,7 @@ import { db } from "~/server/db/db";
 import { TaskType, type TodoStatus } from "~/server/db/enums";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 
+import { type Research } from "~/types";
 import { TaskStatus, TaskSubType } from "~/server/db/enums";
 import { type Language } from "~/types";
 import { getIssue, validateRepo } from "../utils";
@@ -118,6 +119,7 @@ export type Command = {
 type EventPayload =
   | Task
   | Code
+  | Research
   | Design
   | Terminal
   | Plan
@@ -337,6 +339,11 @@ const createTaskForIssue = (issue: Issue, events: Event[], repo: string) => {
     .filter((e) => e.type === TaskType.prompt && e.issueId === issueId)
     .map((e) => e.payload as Prompt);
 
+  // Get the research items associated with the issue
+  const researchItems = events
+    .filter((e) => e.type === TaskType.research && e.issueId === issueId)
+    .map((e) => e.payload as Research);
+
   let imageUrl = "";
   if (issue) {
     imageUrl = getSnapshotUrl(issue.description) ?? "";
@@ -358,5 +365,6 @@ const createTaskForIssue = (issue: Issue, events: Event[], repo: string) => {
     commands,
     codeFiles,
     prompts,
+    researchItems,
   } as Task;
 };

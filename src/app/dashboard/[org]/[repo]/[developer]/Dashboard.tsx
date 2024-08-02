@@ -11,8 +11,10 @@ import { TaskStatus } from "~/server/db/enums";
 import { type Todo, type Task } from "~/server/api/routers/events";
 import { api } from "~/trpc/react";
 import { trpcClient } from "~/trpc/client";
+import { type ResearchItem } from "~/types";
 import { DEVELOPERS } from "~/data/developers";
 import { TaskType } from "~/server/db/enums";
+import Research from "./components/workspace/Research";
 import { getSidebarIconForType } from "~/app/utils";
 import Todos from "./components/todos";
 import { toast } from "react-toastify";
@@ -42,10 +44,9 @@ const Dashboard: React.FC<DashboardParams> = ({
     SidebarIcon.Plan,
   );
   const [tasks, setTasks] = useState<Task[]>(_tasks ?? []);
-  const [selectedTask, setSelectedTask] = useState<Task | undefined>(
-    tasks?.[0],
-  );
+  const [selectedTask, setSelectedTask] = useState<Task | undefined>(tasks[0]);
 
+  const [researchItems, setResearchItems] = useState<ResearchItem[]>([]);
   const [selectedTodo, setSelectedTodo] = useState<Todo | undefined>(undefined);
 
   const chatRef = useRef<ChatComponentHandle>(null);
@@ -60,12 +61,27 @@ const Dashboard: React.FC<DashboardParams> = ({
     projectId: project.id,
     developerId,
   });
+
+  const { data: fetchedResearchItems } = api.research.getAll.useQuery<ResearchItem[]>({
+    projectId: project.id,
+    developerId,
+    issueId: selectedTask?.issueId,
+  }, {
+    enabled: !!selectedTask?.issueId,
+    refetchOnWindowFocus: false,
+  });
   useEffect(() => {
-    if (todos?.length && todos[0]) {
+    if (todos && todos.length > 0) {
       onNewTodoSelected(todos[0]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [todos]);
+
+  useEffect(() => {
+    if (fetchedResearchItems) {
+      setResearchItems(fetchedResearchItems as ResearchItem[]);
+    }
+  }, [fetchedResearchItems]);
 
   api.events.onAdd.useSubscription(
     { org, repo },
@@ -140,6 +156,9 @@ const Dashboard: React.FC<DashboardParams> = ({
             // add the prompt to the task.prompts array
             newTask.prompts = [...(newTask.prompts ?? []), payload];
           }
+          if (payload.type === TaskType.research) {
+            newTask.researchItems = [...(newTask.researchItems ?? []), payload as ResearchItem];
+          }
 
           // update the task in the tasks array
           setTasks((tasks) =>
@@ -179,7 +198,7 @@ const Dashboard: React.FC<DashboardParams> = ({
 
   const onRemoveTask = (taskId: string) => {
     console.log("Removing task: ", taskId);
-    setTasks((tasks) => tasks?.filter((t) => t.id !== taskId));
+    setTasks((tasks) => tasks.filter((t) => t.id !== taskId));
   };
 
   const resetMessages = (messages?: Message[] | undefined) => {
@@ -265,7 +284,9 @@ const Dashboard: React.FC<DashboardParams> = ({
       }
 
       // Remove this todo from the list of todos and optimistically update the UI
-      const newTodos = todos?.filter((t) => t.id !== selectedTodo.id) ?? [];
+      const newTodos = todos
+        ? todos.filter((t) => t.id !== selectedTodo.id)
+        : [];
       newTodos.length ? onNewTodoSelected(newTodos[0]!) : resetMessages();
 
       await trpcClient.todos.archive.mutate({
@@ -283,11 +304,9 @@ const Dashboard: React.FC<DashboardParams> = ({
 
   //** End Task */
 
-  const tasksInProgressOrDone =
-    tasks?.filter(
-      (t) =>
-        t.status === TaskStatus.IN_PROGRESS || t.status === TaskStatus.DONE,
-    ) ?? [];
+  const tasksInProgressOrDone = tasks.filter(
+    (t) => t.status === TaskStatus.IN_PROGRESS || t.status === TaskStatus.DONE,
+  );
 
   return (
     <div className="h-screen w-full bg-gray-800 text-left ">
@@ -322,19 +341,20 @@ const Dashboard: React.FC<DashboardParams> = ({
           className={`col-span-6 bg-gray-900/90 ${tasksInProgressOrDone.length ? "flex" : "hidden"}`}
         >
           <Workspace
-            tasks={
-              tasks?.filter(
-                (t) =>
-                  t.status === TaskStatus.IN_PROGRESS ||
-                  t.status === TaskStatus.DONE,
-              ) ?? []
-            }
+            tasks={tasks.filter(
+              (t) =>
+                t.status === TaskStatus.IN_PROGRESS ||
+                t.status === TaskStatus.DONE,
+            )}
             selectedIcon={selectedIcon}
             selectedTask={selectedTask}
             setSelectedIcon={setSelectedIcon}
             setSelectedTask={setSelectedTask}
             onRemoveTask={onRemoveTask}
           />
+          {selectedTask && (
+            <Research researchItems={selectedTask.researchItems as ResearchItem[] ?? []}
+          )}
         </div>
       </div>
     </div>
