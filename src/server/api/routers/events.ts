@@ -341,7 +341,7 @@ const createTaskForIssue = (issue: Issue, events: Event[], repo: string) => {
 
   // Get the research items associated with the issue
   const researchItems = events
-    .filter((e) => e.type === "research" && e.issueId === issueId)
+    .filter((e) => e.type === TaskType.research && e.issueId === issueId)
     .map((e) => e.payload as Research);
 
   let imageUrl = "";
