@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { db } from "~/server/db/db";
-import { TaskType, type TodoStatus } from "~/server/db/enums";
+import { TaskType, type TodoStatus, type Research } from "~/server/db/enums";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 
 import { TaskStatus, TaskSubType } from "~/server/db/enums";
@@ -127,12 +127,6 @@ type EventPayload =
   | PullRequest
   | Command;
 
-export type Research = {
-  type: TaskType.research;
-  id: string;
-  title: string;
-  content: string;
-};
 
 export interface Todo extends ExtractedIssueInfo {
   id: number;
