@@ -62,9 +62,13 @@ const Dashboard: React.FC<DashboardParams> = ({
     developerId,
   });
 
-  const { data: researchItems } = useQuery(["research.getByIssueId", selectedTodo?.issueId], 
-    () => trpcClient.research.getByIssueId.query({ issueId: selectedTodo?.issueId ?? "" }),
-    { enabled: !!selectedTodo?.issueId }
+  const { data: researchItems } = useQuery(
+    ["research.getByIssueId", selectedTodo?.issueId],
+    () =>
+      trpcClient.research.getByIssueId.query({
+        issueId: selectedTodo?.issueId ?? "",
+      }),
+    { enabled: !!selectedTodo?.issueId },
   );
   useEffect(() => {
     if (todos?.length && todos[0]) {
