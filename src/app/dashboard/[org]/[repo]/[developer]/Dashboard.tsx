@@ -62,10 +62,13 @@ const Dashboard: React.FC<DashboardParams> = ({
     developerId,
   });
 
-  const { data: fetchedResearchItems } = api.research.getAll.useQuery({
+  const { data: fetchedResearchItems } = api.research.getAll.useQuery<ResearchItem[]>({
     projectId: project.id,
     developerId,
     issueId: selectedTask?.issueId,
+  }, {
+    enabled: !!selectedTask?.issueId,
+    refetchOnWindowFocus: false,
   });
   useEffect(() => {
     if (todos && todos.length > 0) {
@@ -76,7 +79,7 @@ const Dashboard: React.FC<DashboardParams> = ({
 
   useEffect(() => {
     if (fetchedResearchItems) {
-      setResearchItems(fetchedResearchItems);
+      setResearchItems(fetchedResearchItems as ResearchItem[]);
     }
   }, [fetchedResearchItems]);
 
@@ -154,7 +157,7 @@ const Dashboard: React.FC<DashboardParams> = ({
             newTask.prompts = [...(newTask.prompts ?? []), payload];
           }
           if (payload.type === TaskType.research) {
-            newTask.researchItems = [...(newTask.researchItems ?? []), payload];
+            newTask.researchItems = [...(newTask.researchItems ?? []), payload as ResearchItem];
           }
 
           // update the task in the tasks array
@@ -328,7 +331,7 @@ const Dashboard: React.FC<DashboardParams> = ({
         </div>
         <div className="col-span-2 h-screen max-w-7xl bg-gray-900/70">
           <Todos
-            todos={todos || []}
+            todos={todos ?? []}
             updateTodoPositions={updateTodoPositions}
             isLoading={loadingTodos}
           />
@@ -350,7 +353,7 @@ const Dashboard: React.FC<DashboardParams> = ({
             onRemoveTask={onRemoveTask}
           />
           {selectedTask && (
-            <Research researchItems={selectedTask.researchItems ?? []} />
+            <Research researchItems={selectedTask.researchItems as ResearchItem[] ?? []}
           )}
         </div>
       </div>
