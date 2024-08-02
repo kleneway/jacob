@@ -32,8 +32,9 @@ const Research: React.FC<ResearchProps> = ({ researchItems }) => {
                     <SyntaxHighlighter
                       style={atomDark}
                       language={match[1]}
-                      PreTag="div"
                       {...props}
+                      PreTag="div"
+                      {...(inline ? { inline: true } : {})}
                     >
                       {String(children).replace(/\n$/, "")}
                     </SyntaxHighlighter>
