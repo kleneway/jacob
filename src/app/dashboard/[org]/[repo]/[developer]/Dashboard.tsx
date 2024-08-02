@@ -11,6 +11,7 @@ import { TaskStatus } from "~/server/db/enums";
 import { type Todo, type Task } from "~/server/api/routers/events";
 import { api } from "~/trpc/react";
 import { trpcClient } from "~/trpc/client";
+import { type ResearchItem } from "~/types";
 import { DEVELOPERS } from "~/data/developers";
 import { TaskType } from "~/server/db/enums";
 import { getSidebarIconForType } from "~/app/utils";
@@ -46,6 +47,7 @@ const Dashboard: React.FC<DashboardParams> = ({
     tasks?.[0],
   );
 
+  const [researchItems, setResearchItems] = useState<ResearchItem[]>([]);
   const [selectedTodo, setSelectedTodo] = useState<Todo | undefined>(undefined);
 
   const chatRef = useRef<ChatComponentHandle>(null);
@@ -60,12 +62,23 @@ const Dashboard: React.FC<DashboardParams> = ({
     projectId: project.id,
     developerId,
   });
+
+  const { data: fetchedResearchItems } = api.research.getAll.useQuery({
+    projectId: project.id,
+    developerId,
+  });
   useEffect(() => {
     if (todos?.length && todos[0]) {
       onNewTodoSelected(todos[0]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [todos]);
+
+  useEffect(() => {
+    if (fetchedResearchItems) {
+      setResearchItems(fetchedResearchItems);
+    }
+  }, [fetchedResearchItems]);
 
   api.events.onAdd.useSubscription(
     { org, repo },
@@ -139,6 +152,9 @@ const Dashboard: React.FC<DashboardParams> = ({
           if (payload.type === TaskType.prompt) {
             // add the prompt to the task.prompts array
             newTask.prompts = [...(newTask.prompts ?? []), payload];
+          }
+          if (payload.type === TaskType.research) {
+            newTask.researchItems = [...(newTask.researchItems ?? []), payload];
           }
 
           // update the task in the tasks array
@@ -335,6 +351,7 @@ const Dashboard: React.FC<DashboardParams> = ({
             setSelectedTask={setSelectedTask}
             onRemoveTask={onRemoveTask}
           />
+          {selectedTask && <Research researchItems={selectedTask.researchItems ?? []} />}
         </div>
       </div>
     </div>
