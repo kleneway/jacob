@@ -72,9 +72,7 @@ const Workspace: React.FC<WorkspaceProps> = ({
       case SidebarIcon.PullRequests:
         return <PullRequestComponent pullRequest={selectedTask?.pullRequest} />;
       case SidebarIcon.Research:
-        return (
-          <Research researchItems={selectedTask?.researchItems} />
-        );
+        return <Research researchItems={selectedTask?.researchItems} />;
       default:
         return null;
     }

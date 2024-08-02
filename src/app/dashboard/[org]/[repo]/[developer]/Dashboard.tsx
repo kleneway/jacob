@@ -156,7 +156,10 @@ const Dashboard: React.FC<DashboardParams> = ({
             newTask.prompts = [...(newTask.prompts ?? []), payload];
           }
           if (payload.type === TaskType.research) {
-            newTask.researchItems = [...(newTask.researchItems ?? []), payload as ResearchItem];
+            newTask.researchItems = [
+              ...(newTask.researchItems ?? []),
+              payload as ResearchItem,
+            ];
           }
 
           // update the task in the tasks array
