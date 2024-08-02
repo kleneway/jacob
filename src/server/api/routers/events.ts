@@ -3,6 +3,7 @@ import { db } from "~/server/db/db";
 import { TaskType, type TodoStatus } from "~/server/db/enums";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 
+import { type Research } from "~/types";
 import { TaskStatus, TaskSubType } from "~/server/db/enums";
 import { type Language } from "~/types";
 import { getIssue, validateRepo } from "../utils";
@@ -340,7 +341,7 @@ const createTaskForIssue = (issue: Issue, events: Event[], repo: string) => {
 
   // Get the research items associated with the issue
   const researchItems = events
-    .filter((e) => e.type === TaskType.research && e.issueId === issueId)
+    .filter((e) => e.type === "research" && e.issueId === issueId)
     .map((e) => e.payload as Research);
 
   let imageUrl = "";
