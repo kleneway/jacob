@@ -127,7 +127,6 @@ type EventPayload =
   | PullRequest
   | Command;
 
-
 export interface Todo extends ExtractedIssueInfo {
   id: number;
   projectId: number;
