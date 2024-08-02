@@ -5,7 +5,7 @@ import { cache } from "react";
 
 import { createCaller } from "~/server/api/root";
 import { createTRPCContext } from "~/server/api/trpc";
-
+import { publicProcedure, router } from "~/server/api/trpc";
 /**
  * This wraps the `createTRPCContext` helper and provides the required context for the tRPC API when
  * handling a tRPC call from a React Server Component.
@@ -20,3 +20,15 @@ const createContext = cache(() => {
 });
 
 export const api = createCaller(createContext);
+
+export const appRouter = router({
+  research: router({
+    getByIssueId: publicProcedure
+      .input({ issueId: String })
+      .query(async ({ ctx, input }) => {
+        return ctx.prisma.research.findMany({
+          where: { issueId: input.issueId },
+        });
+      }),
+  }),
+});
