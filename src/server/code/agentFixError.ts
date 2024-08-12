@@ -55,10 +55,8 @@ export async function fixError(params: AgentFixErrorParams) {
       `[${repository.full_name}] No Issue associated with ${branch} branch for PR #${existingPr?.number}`,
     );
   }
-  const attemptNumber = parseInt(
-    body?.match(/Attempt\s+Number\s+(\d+)/)?.[1] ?? "1",
-    10,
-  ) || 1;
+  const attemptNumber =
+    parseInt(body?.match(/Attempt\s+Number\s+(\d+)/)?.[1] ?? "1", 10) || 1;
 
   const sourceMap = getSourceMap(rootPath, repoSettings);
 

@@ -68,10 +68,9 @@ export async function fixError(params: FixErrorParams) {
     afterHeadingIndex === -1
       ? ""
       : buildErrorSection?.slice(0, afterHeadingIndex) ?? "";
-  const attemptNumber = parseInt(
-    restOfHeading.match(/Attempt\s+Number\s+(\d+)/)?.[1] ?? "",
-    10,
-  ) || 1;
+  const attemptNumber =
+    parseInt(restOfHeading.match(/Attempt\s+Number\s+(\d+)/)?.[1] ?? "", 10) ||
+    1;
   const endOfErrorSectionMarker = "```";
   const errors =
     afterHeadingIndex === -1
@@ -179,7 +178,11 @@ export async function fixError(params: FixErrorParams) {
         baseEventData,
       );
 
-      if (!updatedCode || updatedCode.length < 10 || !updatedCode.includes("__FILEPATH__")) {
+      if (
+        !updatedCode ||
+        updatedCode.length < 10 ||
+        !updatedCode.includes("__FILEPATH__")
+      ) {
         console.log(`[${repository.full_name}] code`, code);
         console.log(`[${repository.full_name}] No code generated. Exiting...`);
         throw new Error("No code generated");

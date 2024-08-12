@@ -1,10 +1,10 @@
 import { cloneAndGetSourceMap, getExtractedIssue } from "../api/utils";
-import { getIssue, RetrievedIssue } from "../github/issue";
+import { getIssue, type RetrievedIssue } from "../github/issue";
 import { db } from "../db/db";
 import { TodoStatus } from "../db/enums";
 import { researchIssue } from "~/server/agent/research";
 import { cloneRepo } from "../git/clone";
-import { Todo } from "../db/schema";
+import { type Todo } from "../db/schema";
 
 export const createTodo = async (
   repo: string | undefined,

@@ -86,7 +86,9 @@ export async function initRabbitMQ({ listener }: { listener: boolean }) {
         await onGitHubEvent(event);
         channel?.ack(message);
       } catch (error: unknown) {
-        console.error(`Error parsing or processing message: ${error instanceof Error ? error.message : String(error)}`);
+        console.error(
+          `Error parsing or processing message: ${error instanceof Error ? error.message : String(error)}`,
+        );
         channel?.ack(message);
       }
     };
@@ -97,7 +99,9 @@ export async function initRabbitMQ({ listener }: { listener: boolean }) {
     });
     console.log(`Initialized RabbitMQ`);
   } catch (error: unknown) {
-    console.error(`Error initializing RabbitMQ: ${error instanceof Error ? error.message : String(error)}`);
+    console.error(
+      `Error initializing RabbitMQ: ${error instanceof Error ? error.message : String(error)}`,
+    );
     return;
   }
 }
@@ -149,7 +153,7 @@ async function isNodeProject(
       installationAuthentication.token,
       "package.json",
     );
-    return !Array.isArray(data) && 'type' in data && data.type === "file";
+    return !Array.isArray(data) && "type" in data && data.type === "file";
   } catch (e) {
     return false;
   }
@@ -186,7 +190,7 @@ async function onReposAdded(
     console.log(
       `onReposAdded: ${event.id} ${event.name} : ${repo.full_name} ${repo.id}`,
     );
-    const repository = { ...repo, owner: installation.account! };
+    const repository = { ...repo, owner: installation.account };
     const distinctId = sender.login ?? "";
 
     let isNodeRepo: boolean | undefined;

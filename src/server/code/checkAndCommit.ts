@@ -97,7 +97,7 @@ export async function checkAndCommit({
   let issue: Issue | RetrievedIssue | undefined;
 
   if (actingOnIssue) {
-    issue = actingOnIssue as Issue | RetrievedIssue;
+    issue = actingOnIssue;
   } else {
     const issueNumber = extractIssueNumberFromBranchName(branch);
     if (issueNumber) {
@@ -105,7 +105,7 @@ export async function checkAndCommit({
       console.log(
         `[${repository.full_name}] Loaded Issue #${issueNumber} associated with PR #${existingPr?.number}`,
       );
-      issue = result as RetrievedIssue;
+      issue = result;
     } else {
       console.log(
         `[${repository.full_name}] No Issue associated with ${branch} branch for PR #${existingPr?.number}`,
@@ -164,7 +164,7 @@ export async function checkAndCommit({
   let prNumber: number;
   let prTitle: string;
   let prUrl: string;
-  if (typeof newPrTitle !== 'string' || typeof newPrBody !== 'string') {
+  if (typeof newPrTitle !== "string" || typeof newPrBody !== "string") {
     if (!existingPr) {
       throw new Error(
         "Must provide either newPrTitle and newPrBody or existingPr",

@@ -47,7 +47,11 @@ export async function createStory(params: CreateStoryParams) {
   const issueNumber = extractIssueNumberFromBranchName(branch);
   let issue: RetrievedIssue | undefined;
   if (issueNumber) {
-    const result: RetrievedIssue = await getIssue(repository, token, issueNumber);
+    const result: RetrievedIssue = await getIssue(
+      repository,
+      token,
+      issueNumber,
+    );
     issue = result;
     console.log(
       `[${repository.full_name}] Loaded Issue #${issueNumber} associated with PR #${existingPr?.number}`,
@@ -99,7 +103,7 @@ export async function createStory(params: CreateStoryParams) {
           DO NOT use the 'any' type because this will result in TypeScript build errors.    
         `,
   };
-  const snapshotUrl = getSnapshotUrl(issue.body ?? '');
+  const snapshotUrl = getSnapshotUrl(issue.body ?? "");
 
   const storySystemPrompt = parseTemplate(
     "dev",

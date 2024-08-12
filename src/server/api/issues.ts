@@ -22,8 +22,9 @@ export async function getExtractedIssues(req: Request, res: Response) {
 
   const { repo, issues } = req.query as Required<QueryParams>;
   const [repoOwner, repoName] = (repo ?? "").split("/");
-  const issueNumbers =
-    (issues ?? "").split(",").map((issue) => parseInt(issue, 10));
+  const issueNumbers = (issues ?? "")
+    .split(",")
+    .map((issue) => parseInt(issue, 10));
 
   if (
     !token ||
@@ -50,7 +51,7 @@ export async function getExtractedIssues(req: Request, res: Response) {
     const issueData = await Promise.all(
       issueNumbers.map((issueNumber) =>
         getIssue(
-          { name: repoName!, owner: { login: repoOwner! } },
+          { name: repoName, owner: { login: repoOwner } },
           token,
           issueNumber,
         ),

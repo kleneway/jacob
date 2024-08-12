@@ -144,7 +144,8 @@ export async function codeReview(params: CodeReviewParams) {
 
   const appUsername = process.env.GITHUB_APP_USERNAME;
   const jacobCreatedThisPR = Boolean(
-    appUsername && `${existingPr.user.id}` === appUsername);
+    appUsername && `${existingPr.user.id}` === appUsername,
+  );
 
   if (comments.length === 0) {
     const body =
