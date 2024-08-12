@@ -58,7 +58,7 @@ export async function fixError(params: AgentFixErrorParams) {
   const attemptNumber = parseInt(
     body?.match(/Attempt\s+Number\s+(\d+)/)?.[1] ?? "1",
     10,
-  );
+  ) || 1;
 
   const sourceMap = getSourceMap(rootPath, repoSettings);
 
@@ -115,11 +115,11 @@ export async function fixError(params: AgentFixErrorParams) {
       commitMessage,
       existingPr,
       issue,
-      buildErrorAttemptNumber: isNaN(attemptNumber) ? 1 : attemptNumber,
+      buildErrorAttemptNumber: attemptNumber,
     });
 
     return fixes;
-  } catch (error) {
+  } catch (error: unknown) {
     if (prIssue) {
       const message = dedent`
         JACoB here once again...
@@ -128,7 +128,7 @@ export async function fixError(params: AgentFixErrorParams) {
 
         Here is some information about the error(s):
         
-        ${error}
+        ${error instanceof Error ? error.message : String(error)}
 
         This was my last attempt to fix the error(s). Please review the error(s) and try to fix them manually, or you may do a code review to provide additional information and I will try to fix the error(s) again.
       `;
