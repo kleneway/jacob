@@ -31,6 +31,7 @@ export interface CheckAndCommitOptions extends BaseEventData {
   repository: Repository;
   token: string;
   rootPath: string;
+  skipBuild?: boolean;
   branch: string;
   repoSettings?: RepoSettings;
   commitMessage: string;
@@ -47,6 +48,7 @@ export async function checkAndCommit({
   repository,
   token,
   rootPath,
+  skipBuild = false,
   branch,
   repoSettings,
   commitMessage,
@@ -61,13 +63,18 @@ export async function checkAndCommit({
 }: CheckAndCommitOptions) {
   let buildErrorMessage: string | undefined;
 
-  try {
-    await runBuildCheck({
-      ...baseEventData,
-      path: rootPath,
-      afterModifications: true,
-      repoSettings,
-    });
+  if (!skipBuild) {
+    try {
+      await runBuildCheck({
+        ...baseEventData,
+        path: rootPath,
+        afterModifications: true,
+        repoSettings,
+      });
+    } catch (error) {
+      const { message } = error as Error;
+      buildErrorMessage = message;
+    }
   } catch (error) {
     const { message } = error as Error;
     buildErrorMessage = message;
