@@ -20,10 +20,10 @@ export async function getExtractedIssues(req: Request, res: Response) {
   const { authorization } = req.headers;
   const token: string | undefined = (authorization ?? "").trim().split(" ")[1];
 
-  const { repo, issues } = req.query as QueryParams;
-  const [repoOwner, repoName] = repo?.split("/") ?? [];
+  const { repo, issues } = req.query as Required<QueryParams>;
+  const [repoOwner, repoName] = (repo ?? "").split("/");
   const issueNumbers =
-    issues?.split(",").map((issue) => parseInt(issue, 10)) ?? [];
+    (issues ?? "").split(",").map((issue) => parseInt(issue, 10));
 
   if (
     !token ||
@@ -50,7 +50,7 @@ export async function getExtractedIssues(req: Request, res: Response) {
     const issueData = await Promise.all(
       issueNumbers.map((issueNumber) =>
         getIssue(
-          { name: repoName, owner: { login: repoOwner } },
+          { name: repoName!, owner: { login: repoOwner! } },
           token,
           issueNumber,
         ),
@@ -58,8 +58,8 @@ export async function getExtractedIssues(req: Request, res: Response) {
     );
 
     const extractedIssues = await Promise.all(
-      issueData.map(async ({ data: issue }) => {
-        const issueBody = issue.body ? `\n${issue.body}` : "";
+      issueData.map(async (issue) => {
+        const issueBody = issue.body ?? "";
         const issueText = `${issue.title}${issueBody}`;
 
         const extractedIssueTemplateParams = {

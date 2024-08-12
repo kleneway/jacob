@@ -66,14 +66,14 @@ export async function checkAndCommit({
   if (!skipBuild) {
     try {
       await runBuildCheck({
-      ...baseEventData,
-      path: rootPath,
-      afterModifications: true,
-      repoSettings,
-    });
-  } catch (error) {
-    const { message } = error as Error;
-    buildErrorMessage = message;
+        ...baseEventData,
+        path: rootPath,
+        afterModifications: true,
+        repoSettings,
+      });
+    } catch (error) {
+      const { message } = error as Error;
+      buildErrorMessage = message;
     }
   } else {
     console.log("Build skipped due to skipBuild flag");
