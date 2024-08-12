@@ -41,6 +41,7 @@ export interface CheckAndCommitOptions extends BaseEventData {
   newPrReviewers?: string[];
   creatingStory?: boolean;
   buildErrorAttemptNumber?: number;
+  skipBuild?: boolean;
 }
 
 export async function checkAndCommit({
@@ -57,12 +58,14 @@ export async function checkAndCommit({
   newPrReviewers,
   creatingStory,
   buildErrorAttemptNumber,
+  skipBuild = false,
   ...baseEventData
 }: CheckAndCommitOptions) {
   let buildErrorMessage: string | undefined;
 
-  try {
-    await runBuildCheck({
+  if (!skipBuild) {
+    try {
+      await runBuildCheck({
       ...baseEventData,
       path: rootPath,
       afterModifications: true,
@@ -71,6 +74,9 @@ export async function checkAndCommit({
   } catch (error) {
     const { message } = error as Error;
     buildErrorMessage = message;
+    }
+  } else {
+    console.log("Build skipped due to skipBuild flag");
   }
 
   const hasChanges = await checkForChanges({
