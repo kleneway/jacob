@@ -51,7 +51,7 @@ export async function fixError(params: FixErrorParams) {
   let issue: RetrievedIssue | undefined;
   if (issueNumber) {
     const result = await getIssue(repository, token, issueNumber);
-    issue = result.data;
+    issue = result;
     console.log(
       `[${repository.full_name}] Loaded Issue #${issueNumber} associated with PR #${existingPr?.number}`,
     );
@@ -71,7 +71,7 @@ export async function fixError(params: FixErrorParams) {
   const attemptNumber = parseInt(
     restOfHeading.match(/Attempt\s+Number\s+(\d+)/)?.[1] ?? "",
     10,
-  );
+  ) || 1;
   const endOfErrorSectionMarker = "```";
   const errors =
     afterHeadingIndex === -1
@@ -127,7 +127,7 @@ export async function fixError(params: FixErrorParams) {
         commitMessage,
         existingPr,
         issue,
-        buildErrorAttemptNumber: isNaN(attemptNumber) ? 1 : attemptNumber,
+        buildErrorAttemptNumber: attemptNumber,
       });
     } else {
       const { code } = await concatenatePRFiles(
@@ -139,7 +139,7 @@ export async function fixError(params: FixErrorParams) {
         assessment.filesToUpdate,
       );
 
-      const { errors } = assessment;
+      const { errors = [] } = assessment;
 
       const errorMessages = errors
         ?.map(
@@ -172,14 +172,14 @@ export async function fixError(params: FixErrorParams) {
         "user",
         codeTemplateParams,
       );
-      const updatedCode = (await sendGptRequest(
+      const updatedCode = await sendGptRequest(
         codeUserPrompt,
         codeSystemPrompt,
         0.2,
         baseEventData,
-      ))!;
+      );
 
-      if (updatedCode.length < 10 || !updatedCode.includes("__FILEPATH__")) {
+      if (!updatedCode || updatedCode.length < 10 || !updatedCode.includes("__FILEPATH__")) {
         console.log(`[${repository.full_name}] code`, code);
         console.log(`[${repository.full_name}] No code generated. Exiting...`);
         throw new Error("No code generated");
@@ -200,10 +200,10 @@ export async function fixError(params: FixErrorParams) {
         commitMessage,
         existingPr,
         issue,
-        buildErrorAttemptNumber: isNaN(attemptNumber) ? 1 : attemptNumber,
+        buildErrorAttemptNumber: attemptNumber,
       });
     }
-  } catch (error) {
+  } catch (error: unknown) {
     if (prIssue) {
       const message = dedent`JACoB here once again...
 
@@ -211,7 +211,7 @@ export async function fixError(params: FixErrorParams) {
 
         Here is some information about the error(s):
         
-        ${assessment.errors
+        ${(assessment.errors ?? [])
           .map(
             ({ filePath, startingLineNumber, endingLineNumber, error, code }) =>
               `Error in ${filePath} (${startingLineNumber}-${endingLineNumber}): ${error}. Code: ${code}`,
