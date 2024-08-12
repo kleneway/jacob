@@ -85,8 +85,10 @@ export async function initRabbitMQ({ listener }: { listener: boolean }) {
         ) as WebhookQueuedEvent;
         await onGitHubEvent(event);
         channel?.ack(message);
-      } catch (error) {
-        console.error(`Error parsing or processing message: ${String(error)}`);
+      } catch (error: unknown) {
+        console.error(
+          `Error parsing or processing message: ${error instanceof Error ? error.message : String(error)}`,
+        );
         channel?.ack(message);
       }
     };
@@ -96,8 +98,10 @@ export async function initRabbitMQ({ listener }: { listener: boolean }) {
       noAck: false,
     });
     console.log(`Initialized RabbitMQ`);
-  } catch (error) {
-    console.error(`Error initializing RabbitMQ: ${String(error)}`);
+  } catch (error: unknown) {
+    console.error(
+      `Error initializing RabbitMQ: ${error instanceof Error ? error.message : String(error)}`,
+    );
     return;
   }
 }
@@ -149,7 +153,7 @@ async function isNodeProject(
       installationAuthentication.token,
       "package.json",
     );
-    return !(data instanceof Array) && data.type === "file";
+    return !Array.isArray(data) && "type" in data && data.type === "file";
   } catch (e) {
     return false;
   }
@@ -172,7 +176,7 @@ async function onReposAdded(
   const repos =
     event.name === "installation_repositories"
       ? event.payload.repositories_added
-      : event.payload.repositories ?? [];
+      : event.payload.repositories || [];
   const { installation, sender } = event.payload;
 
   const installationAuthentication = await authInstallation(installation?.id);
@@ -245,7 +249,7 @@ async function onReposAdded(
           repository,
           installationAuthentication.token,
           sender.login,
-          isNodeRepo,
+          isNodeRepo ?? false,
           error as Error,
         );
         posthogClient.capture({
@@ -255,7 +259,7 @@ async function onReposAdded(
             repo: repo.full_name,
           },
         });
-      } catch (issueError) {
+      } catch (issueError: unknown) {
         // NOTE: some repos don't have issues and we will fail to create an issue
         // Ignoring this error so we can continue to process the next repo and remove this event from the queue
         console.error(
@@ -684,7 +688,7 @@ export async function onGitHubEvent(event: WebhookQueuedEvent) {
       );
       await cleanup();
     }
-  } catch (error) {
+  } catch (error: unknown) {
     await addFailedWorkComment(
       repository,
       eventIssueOrPRNumber,
@@ -697,7 +701,7 @@ export async function onGitHubEvent(event: WebhookQueuedEvent) {
       ...baseEventData,
       subType: taskSubType,
       status: TaskStatus.ERROR,
-      statusMessage: String(error),
+      statusMessage: error instanceof Error ? error.message : String(error),
     });
     posthogClient.capture({
       distinctId,

@@ -41,6 +41,7 @@ export interface CheckAndCommitOptions extends BaseEventData {
   newPrReviewers?: string[];
   creatingStory?: boolean;
   buildErrorAttemptNumber?: number;
+  skipBuild?: boolean;
 }
 
 export async function checkAndCommit({
@@ -57,20 +58,25 @@ export async function checkAndCommit({
   newPrReviewers,
   creatingStory,
   buildErrorAttemptNumber,
+  skipBuild = false,
   ...baseEventData
 }: CheckAndCommitOptions) {
   let buildErrorMessage: string | undefined;
 
-  try {
-    await runBuildCheck({
-      ...baseEventData,
-      path: rootPath,
-      afterModifications: true,
-      repoSettings,
-    });
-  } catch (error) {
-    const { message } = error as Error;
-    buildErrorMessage = message;
+  if (!skipBuild) {
+    try {
+      await runBuildCheck({
+        ...baseEventData,
+        path: rootPath,
+        afterModifications: true,
+        repoSettings,
+      });
+    } catch (error: unknown) {
+      const { message } = error as { message: string };
+      buildErrorMessage = message;
+    }
+  } else {
+    console.log("Build skipped due to skipBuild flag");
   }
 
   const hasChanges = await checkForChanges({
@@ -99,7 +105,7 @@ export async function checkAndCommit({
       console.log(
         `[${repository.full_name}] Loaded Issue #${issueNumber} associated with PR #${existingPr?.number}`,
       );
-      issue = result.data;
+      issue = result;
     } else {
       console.log(
         `[${repository.full_name}] No Issue associated with ${branch} branch for PR #${existingPr?.number}`,
@@ -158,7 +164,7 @@ export async function checkAndCommit({
   let prNumber: number;
   let prTitle: string;
   let prUrl: string;
-  if (!newPrTitle || !newPrBody) {
+  if (typeof newPrTitle !== "string" || typeof newPrBody !== "string") {
     if (!existingPr) {
       throw new Error(
         "Must provide either newPrTitle and newPrBody or existingPr",

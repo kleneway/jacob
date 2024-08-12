@@ -46,7 +46,7 @@ export async function codeReview(params: CodeReviewParams) {
   let issue: Issue | undefined;
   if (issueNumber) {
     const result = await getIssue(repository, token, issueNumber);
-    issue = result.data;
+    issue = result;
     console.log(
       `[${repository.full_name}] Loaded Issue #${issueNumber} associated with PR #${existingPr?.number}`,
     );
@@ -120,9 +120,9 @@ export async function codeReview(params: CodeReviewParams) {
   const comments = extractedComments
     .map((comment) => {
       const { path, line: suggestedLine } = comment;
-      const lineLength = lineLengthMap[path];
-      const line = Math.min(suggestedLine, lineLength ? lineLength : Infinity);
-      const ranges = newOrModifiedRangeMap[path];
+      const lineLength = lineLengthMap[path] ?? Infinity;
+      const line = Math.min(suggestedLine, lineLength);
+      const ranges = newOrModifiedRangeMap[path] ?? [];
       const appliesToNewOrModifiedCode = ranges?.some(
         (range) => line >= range.start && line <= range.end,
       );
@@ -143,8 +143,9 @@ export async function codeReview(params: CodeReviewParams) {
     .filter(Boolean) as CodeComment[];
 
   const appUsername = process.env.GITHUB_APP_USERNAME;
-  const jacobCreatedThisPR =
-    appUsername && `${existingPr.user.id}` === appUsername;
+  const jacobCreatedThisPR = Boolean(
+    appUsername && `${existingPr.user.id}` === appUsername,
+  );
 
   if (comments.length === 0) {
     const body =

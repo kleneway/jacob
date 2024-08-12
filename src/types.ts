@@ -85,6 +85,13 @@ export type PullRequest = {
   deletions: number;
 };
 
+export type CheckAndCommitParams = {
+  // ... existing parameters
+
+  // Indicates whether the build process should be skipped
+  skipBuild?: boolean;
+};
+
 export type Prompt = {
   promptType: "User" | "System" | "Assistant";
   prompt: string;

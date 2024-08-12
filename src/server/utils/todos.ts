@@ -1,12 +1,13 @@
 import { cloneAndGetSourceMap, getExtractedIssue } from "../api/utils";
-import { getIssue } from "../github/issue";
+import { getIssue, type RetrievedIssue } from "../github/issue";
 import { db } from "../db/db";
 import { TodoStatus } from "../db/enums";
 import { researchIssue } from "~/server/agent/research";
 import { cloneRepo } from "../git/clone";
+import { type Todo } from "../db/schema";
 
 export const createTodo = async (
-  repo: string,
+  repo: string | undefined,
   projectId: number,
   issueNumber: number,
   accessToken: string | undefined,
@@ -22,7 +23,7 @@ export const createTodo = async (
   }
 
   // Check if a todo for this issue already exists
-  const existingTodo = await db.todos.findByOptional({
+  const existingTodo: Todo | null = await db.todos.findByOptional({
     projectId: projectId,
     issueId: issueNumber,
   });
@@ -33,7 +34,7 @@ export const createTodo = async (
   }
 
   // Fetch the specific issue
-  const { data: issue } = await getIssue(
+  const issue: RetrievedIssue = await getIssue(
     { name: repoName, owner: { login: repoOwner } },
     accessToken,
     issueNumber,
@@ -54,7 +55,7 @@ export const createTodo = async (
 
     const extractedIssue = await getExtractedIssue(sourceMap, issueText);
 
-    const newTodo = await db.todos.create({
+    const newTodo: Todo = await db.todos.create({
       projectId: projectId,
       description: `${issue.title}\n\n${issueBody}`,
       name: extractedIssue.commitTitle ?? issue.title ?? "New Todo",
@@ -65,13 +66,13 @@ export const createTodo = async (
     await researchIssue(
       issueText,
       sourceMap,
-      newTodo?.id,
+      newTodo.id,
       issueNumber,
       rootPath,
     );
 
     console.log(`Created new todo for issue #${issue.number}`);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error(
       `Error while creating todo for issue #${issue.number}: ${String(error)}`,
     );
