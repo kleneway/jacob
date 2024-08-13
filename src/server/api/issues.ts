@@ -58,7 +58,7 @@ export async function getExtractedIssues(req: Request, res: Response) {
     );
 
     const extractedIssues = await Promise.all(
-      issueData.map(async ({ data: issue }) => {
+      issueData.map(async ({ data: issue }: { data: { body?: string; title: string; number: number } }) => {
         const issueBody = issue.body ? `\n${issue.body}` : "";
         const issueText = `${issue.title}${issueBody}`;
 
@@ -87,7 +87,7 @@ export async function getExtractedIssues(req: Request, res: Response) {
         )) as ExtractedIssueInfo;
 
         return {
-          issueNumber: issue.number,
+          issueNumber: issue.number as number,
           ...extractedIssue,
         };
       }),
