@@ -80,11 +80,12 @@ export const githubRouter = createTRPCRouter({
         repo: z.string(),
         title: z.string(),
         body: z.string().optional(),
+        skipBuild: z.boolean().optional(),
       }),
     )
     .mutation(
       async ({
-        input: { repo, title, body },
+        input: { repo, title, body, skipBuild },
         ctx: {
           session: { accessToken },
         },
@@ -108,6 +109,10 @@ export const githubRouter = createTRPCRouter({
           title,
           body,
         });
+
+        if (skipBuild) {
+          console.log("Build skipped as requested.");
+        }
 
         return { id };
       },
