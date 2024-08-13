@@ -1,6 +1,7 @@
 import { dedent } from "ts-dedent";
 import { type Issue, type Repository } from "@octokit/webhooks-types";
 import { type Endpoints } from "@octokit/types";
+import { BuildOptions } from "src/types";
 import fs from "fs";
 import path from "path";
 
@@ -41,6 +42,7 @@ export interface CheckAndCommitOptions extends BaseEventData {
   newPrReviewers?: string[];
   creatingStory?: boolean;
   buildErrorAttemptNumber?: number;
+  skipBuild?: boolean;
 }
 
 export async function checkAndCommit({
@@ -57,11 +59,16 @@ export async function checkAndCommit({
   newPrReviewers,
   creatingStory,
   buildErrorAttemptNumber,
+  skipBuild,
   ...baseEventData
 }: CheckAndCommitOptions) {
   let buildErrorMessage: string | undefined;
 
-  try {
+  if (skipBuild) {
+    console.log("Skipping build as requested");
+  } else {
+    try {
+      await runBuildCheck({
     await runBuildCheck({
       ...baseEventData,
       path: rootPath,
@@ -71,6 +78,7 @@ export async function checkAndCommit({
   } catch (error) {
     const { message } = error as Error;
     buildErrorMessage = message;
+    }
   }
 
   const hasChanges = await checkForChanges({
