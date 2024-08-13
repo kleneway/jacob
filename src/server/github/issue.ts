@@ -43,11 +43,18 @@ export async function getIssue(
     userAgent: "jacob",
   });
 
-  return octokit.issues.get({
+  const { data: issue } = await octokit.issues.get({
     owner: repository.owner.login,
     repo: repository.name,
     issue_number,
   });
+
+  const skipBuild = /--skip-build/.test(issue.body || "");
+
+  return {
+    ...issue,
+    skipBuild,
+  };
 }
 
 export async function createRepoInstalledIssue(
