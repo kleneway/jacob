@@ -147,3 +147,8 @@ export interface Research {
   answer: string;
   issueId: number;
 }
+
+export type BuildOptions = {
+  skipBuild: boolean;
+};
+
