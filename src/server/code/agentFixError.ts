@@ -45,7 +45,7 @@ export async function fixError(params: AgentFixErrorParams) {
   const issueNumber = extractIssueNumberFromBranchName(branch);
   let issue: RetrievedIssue | undefined;
   if (issueNumber) {
-    const result = await getIssue(repository, token, issueNumber);
+    const result: { data: RetrievedIssue } = await getIssue(repository, token, issueNumber);
     issue = result.data;
     console.log(
       `[${repository.full_name}] Loaded Issue #${issueNumber} associated with PR #${existingPr?.number}`,

@@ -43,11 +43,12 @@ export async function getIssue(
     userAgent: "jacob",
   });
 
-  return octokit.issues.get({
+  const { data } = await octokit.issues.get({
     owner: repository.owner.login,
     repo: repository.name,
     issue_number,
   });
+  return data;
 }
 
 export async function createRepoInstalledIssue(
