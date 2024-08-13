@@ -48,6 +48,7 @@ export function getEnv(repoSettings?: RepoSettings) {
 export interface RunBuildCheckParams extends BaseEventData {
   path: string;
   afterModifications: boolean;
+  skipBuild?: boolean;
   repoSettings?: RepoSettings;
 }
 
@@ -55,6 +56,7 @@ export async function runBuildCheck({
   path,
   afterModifications,
   repoSettings,
+  skipBuild,
   ...baseEventData
 }: RunBuildCheckParams): ExecPromise {
   const env = getEnv(repoSettings);
@@ -76,6 +78,11 @@ export async function runBuildCheck({
     `npm run build --verbose${
       language === Language.TypeScript ? " && npx tsc --noEmit" : ""
     }`;
+
+  if (skipBuild) {
+    console.log("Build skipped as requested.");
+    return { stdout: "Build skipped", stderr: "" };
+  }
 
   try {
     await executeWithLogRequiringSuccess({
