@@ -58,39 +58,45 @@ export async function getExtractedIssues(req: Request, res: Response) {
     );
 
     const extractedIssues = await Promise.all(
-      issueData.map(async ({ data: issue }: { data: { body?: string; title: string; number: number } }) => {
-        const issueBody = issue.body ? `\n${issue.body}` : "";
-        const issueText = `${issue.title}${issueBody}`;
+      issueData.map(
+        async ({
+          data: issue,
+        }: {
+          data: { body?: string; title: string; number: number };
+        }) => {
+          const issueBody = issue.body ? `\n${issue.body}` : "";
+          const issueText = `${issue.title}${issueBody}`;
 
-        const extractedIssueTemplateParams = {
-          sourceMap,
-          issueText,
-        };
+          const extractedIssueTemplateParams = {
+            sourceMap,
+            issueText,
+          };
 
-        const extractedIssueSystemPrompt = parseTemplate(
-          "dev",
-          "extracted_issue",
-          "system",
-          extractedIssueTemplateParams,
-        );
-        const extractedIssueUserPrompt = parseTemplate(
-          "dev",
-          "extracted_issue",
-          "user",
-          extractedIssueTemplateParams,
-        );
-        const extractedIssue = (await sendGptRequestWithSchema(
-          extractedIssueUserPrompt,
-          extractedIssueSystemPrompt,
-          ExtractedIssueInfoSchema,
-          0.2,
-        )) as ExtractedIssueInfo;
+          const extractedIssueSystemPrompt = parseTemplate(
+            "dev",
+            "extracted_issue",
+            "system",
+            extractedIssueTemplateParams,
+          );
+          const extractedIssueUserPrompt = parseTemplate(
+            "dev",
+            "extracted_issue",
+            "user",
+            extractedIssueTemplateParams,
+          );
+          const extractedIssue = (await sendGptRequestWithSchema(
+            extractedIssueUserPrompt,
+            extractedIssueSystemPrompt,
+            ExtractedIssueInfoSchema,
+            0.2,
+          )) as ExtractedIssueInfo;
 
-        return {
-          issueNumber: issue.number as number,
-          ...extractedIssue,
-        };
-      }),
+          return {
+            issueNumber: issue.number,
+            ...extractedIssue,
+          };
+        },
+      ),
     );
 
     return res.status(200).json(extractedIssues);
