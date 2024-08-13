@@ -147,3 +147,12 @@ export interface Research {
   answer: string;
   issueId: number;
 }
+
+export interface BuildOptions {
+  skipBuild: boolean;
+}
+
+export interface CheckAndCommitOptions extends BuildOptions {
+  // Existing properties...
+  // Add any other existing properties from the CheckAndCommitOptions interface
+}
