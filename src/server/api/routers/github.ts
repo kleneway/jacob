@@ -34,6 +34,7 @@ export const githubRouter = createTRPCRouter({
       }) => {
         const [repoOwner, repoName] = repo?.split("/") ?? [];
         const issueText = `${title} ${body}`;
+        const skipBuild = body.includes("--skip-build");
         if (!repoOwner || !repoName || !issueText?.length) {
           throw new TRPCError({
             code: "BAD_REQUEST",
@@ -71,7 +72,7 @@ export const githubRouter = createTRPCRouter({
         if (extractedIssue.filesToCreate?.length && !title.includes("=>")) {
           newTitle += ` => ${extractedIssue.filesToCreate[0]}`;
         }
-        return { title: newTitle, body };
+        return { title: newTitle, body, skipBuild };
       },
     ),
   createIssue: protectedProcedure
@@ -80,6 +81,7 @@ export const githubRouter = createTRPCRouter({
         repo: z.string(),
         title: z.string(),
         body: z.string().optional(),
+        skipBuild: z.boolean().optional(),
       }),
     )
     .mutation(
@@ -107,6 +109,7 @@ export const githubRouter = createTRPCRouter({
           repo: repoName,
           title,
           body,
+          labels: body?.includes("--skip-build") ? ["skip-build"] : undefined,
         });
 
         return { id };
@@ -119,6 +122,7 @@ export const githubRouter = createTRPCRouter({
         id: z.number(),
         title: z.string().optional(),
         body: z.string().optional(),
+        skipBuild: z.boolean().optional(),
       }),
     )
     .mutation(
@@ -145,6 +149,7 @@ export const githubRouter = createTRPCRouter({
           issue_number: id,
           title,
           body,
+          labels: body?.includes("--skip-build") ? ["skip-build"] : undefined,
         });
 
         return { id };
@@ -159,6 +164,7 @@ export const githubRouter = createTRPCRouter({
           newOrExistingFile: z.enum(["new", "existing"]).optional().nullable(),
           title: z.string(),
           body: z.string(),
+          skipBuild: z.boolean().optional(),
         });
 
         // Type for the expected issue details parsed from the text block
@@ -180,6 +186,7 @@ export const githubRouter = createTRPCRouter({
           "  newOrExistingFile: z.enum(['new', 'existing']), // Indicate whether the task is to create a new file or edit an existing file.\n" +
           "  title: z.string(), // The title of the GitHub issue. If this is a new file, you MUST follow the format: 'Create new file => /path/to/file/new_filename.ext'.\n" +
           "  body: z.string(), // Copy the ENTIRED DETAILED GitHub issue body as the description. Use Markdown.\n" +
+          "  skipBuild: z.boolean().optional(), // Indicate whether to skip the build process.\n" +
           "});\n" +
           "REMEMBER: The title MUST be in the format 'Create new file => /path/to/file/new_filename.ext' if this is a new file task.\n" +
           "Please provide ONLY an object with the title and description based on the GitHub issue text provided. If there is any extra information or if you do not provide an object that is parsable and passes Zod schema validation for the IssueSchema schema, the system will crash.\n";
@@ -195,6 +202,7 @@ export const githubRouter = createTRPCRouter({
 
         // Add the @jacob-ai-bot tag to the issue body
         issueData.body += `\n\n${AT_MENTION}`;
+        issueData.skipBuild = issueData.body.includes("--skip-build");
 
         return issueData;
       } catch (error) {
