@@ -41,6 +41,7 @@ export interface CheckAndCommitOptions extends BaseEventData {
   newPrReviewers?: string[];
   creatingStory?: boolean;
   buildErrorAttemptNumber?: number;
+  skipBuild?: boolean;
 }
 
 export async function checkAndCommit({
@@ -57,17 +58,20 @@ export async function checkAndCommit({
   newPrReviewers,
   creatingStory,
   buildErrorAttemptNumber,
+  skipBuild,
   ...baseEventData
 }: CheckAndCommitOptions) {
   let buildErrorMessage: string | undefined;
 
   try {
-    await runBuildCheck({
+    if (!skipBuild) {
+      await runBuildCheck({
       ...baseEventData,
       path: rootPath,
       afterModifications: true,
       repoSettings,
     });
+    }
   } catch (error) {
     const { message } = error as Error;
     buildErrorMessage = message;
