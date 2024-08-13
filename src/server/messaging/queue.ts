@@ -347,6 +347,7 @@ export async function onGitHubEvent(event: WebhookQueuedEvent) {
   const baseEventData = {
     projectId: project.id,
     repoFullName: repository.full_name,
+    skipBuild: event.payload.issue?.body?.includes("--skip-build") ?? false,
     userId: distinctId,
     issueId:
       eventName === "issues" || eventName === "issue_comment"
@@ -509,12 +510,14 @@ export async function onGitHubEvent(event: WebhookQueuedEvent) {
         // detailed and is too large for our LLM context window.
         const sourceMap = getSourceMap(path, repoSettings);
 
-        await runBuildCheck({
-          ...baseEventData,
-          path,
-          afterModifications: false,
-          repoSettings,
-        });
+        if (!baseEventData.skipBuild) {
+          await runBuildCheck({
+            ...baseEventData,
+            path,
+            afterModifications: false,
+            repoSettings,
+          });
+        }
 
         if (newFileName) {
           await createNewFile({
@@ -627,12 +630,14 @@ export async function onGitHubEvent(event: WebhookQueuedEvent) {
             });
             break;
           case PRCommand.Build:
-            await runBuildCheck({
-              ...baseEventData,
-              path,
-              afterModifications: false,
-              repoSettings,
-            });
+            if (!baseEventData.skipBuild) {
+              await runBuildCheck({
+                ...baseEventData,
+                path,
+                afterModifications: false,
+                repoSettings,
+              });
+            }
             await addCommentToIssue(
               repository,
               eventIssueOrPRNumber,
@@ -674,12 +679,14 @@ export async function onGitHubEvent(event: WebhookQueuedEvent) {
       } else if (issueComment) {
         switch (issueCommand) {
           case IssueCommand.Build:
-            await runBuildCheck({
-              ...baseEventData,
-              path,
-              afterModifications: false,
-              repoSettings,
-            });
+            if (!baseEventData.skipBuild) {
+              await runBuildCheck({
+                ...baseEventData,
+                path,
+                afterModifications: false,
+                repoSettings,
+              });
+            }
             await addCommentToIssue(
               repository,
               eventIssueOrPRNumber,
