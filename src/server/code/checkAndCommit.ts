@@ -68,11 +68,11 @@ export async function checkAndCommit({
   } else {
     try {
       await runBuildCheck({
-      ...baseEventData,
-      path: rootPath,
-      afterModifications: true,
-      repoSettings,
-    });
+        ...baseEventData,
+        path: rootPath,
+        afterModifications: true,
+        repoSettings,
+      });
     } catch (error) {
       const { message } = error as Error;
       buildErrorMessage = message;

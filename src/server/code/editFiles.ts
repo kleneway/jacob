@@ -46,7 +46,7 @@ export async function editFiles(params: EditFilesParams) {
   const snapshotUrl = getSnapshotUrl(issue.body);
   // When we start processing PRs, need to handle appending additionalComments
   const issueBody = issue.body ? `\n${issue.body}` : "";
-  const skipBuild = issueBody.toLowerCase().includes('[skip build]');
+  const skipBuild = issueBody.toLowerCase().includes("[skip build]");
   const issueText = `${issue.title}${issueBody}`;
 
   const extractedIssueTemplateParams = {

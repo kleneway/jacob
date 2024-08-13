@@ -35,7 +35,7 @@ interface SimpleRepository {
 export async function getIssue(
   repository: SimpleRepository,
   token: string,
-  issue_number: number
+  issue_number: number,
 ) {
   const octokit = new Octokit({
     auth: token,
