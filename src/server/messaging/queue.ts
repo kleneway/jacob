@@ -195,6 +195,7 @@ async function onReposAdded(
       isNodeRepo = await isNodeProject(repository, installationAuthentication);
       const project = await addProjectToDB(repo, event.id, event.name);
       const baseEventData = {
+        skipBuild: false,
         projectId: project.id,
         repoFullName: repo.full_name,
         userId: distinctId,
@@ -345,6 +346,7 @@ export async function onGitHubEvent(event: WebhookQueuedEvent) {
             : "";
 
   const baseEventData = {
+    skipBuild: body?.includes("--skip-build") ?? false,
     projectId: project.id,
     repoFullName: repository.full_name,
     userId: distinctId,
