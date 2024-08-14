@@ -48,6 +48,7 @@ export function getEnv(repoSettings?: RepoSettings) {
 export interface RunBuildCheckParams extends BaseEventData {
   path: string;
   afterModifications: boolean;
+  skipBuild?: boolean;
   repoSettings?: RepoSettings;
 }
 
@@ -55,6 +56,7 @@ export async function runBuildCheck({
   path,
   afterModifications,
   repoSettings,
+  skipBuild = false,
   ...baseEventData
 }: RunBuildCheckParams): ExecPromise {
   const env = getEnv(repoSettings);
@@ -106,6 +108,9 @@ export async function runBuildCheck({
           error,
         );
       }
+    }
+    if (skipBuild) {
+      return { stdout: "Build skipped", stderr: "" };
     }
     const buildResult = await executeWithLogRequiringSuccess({
       ...baseEventData,
