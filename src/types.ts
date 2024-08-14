@@ -1,3 +1,8 @@
+export interface BuildOptions {
+  skipBuild: boolean;
+}
+
+// Add other existing types or interfaces here if needed
 export enum Role {
   ASSISTANT = "assistant",
   USER = "user",
