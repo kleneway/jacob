@@ -45,6 +45,7 @@ export const createTodo = async (
 
   const issueBody = issue.body ? `\n${issue.body}` : "";
   const issueText = `${issue.title}${issueBody}`;
+  const skipBuild = issueText.includes("--skip-build");
 
   let cleanupClone: (() => Promise<void>) | undefined;
   try {
@@ -75,6 +76,7 @@ export const createTodo = async (
         newTodo?.id,
         issueNumber,
         rootPath,
+        skipBuild,
       );
     }
 
