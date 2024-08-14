@@ -61,6 +61,7 @@ export async function getExtractedIssues(req: Request, res: Response) {
       issueData.map(async ({ data: issue }) => {
         const issueBody = issue.body ? `\n${issue.body}` : "";
         const issueText = `${issue.title}${issueBody}`;
+        const skipBuild = issueText.includes("--skip-build");
 
         const extractedIssueTemplateParams = {
           sourceMap,
@@ -89,6 +90,7 @@ export async function getExtractedIssues(req: Request, res: Response) {
         return {
           issueNumber: issue.number,
           ...extractedIssue,
+          skipBuild,
         };
       }),
     );
