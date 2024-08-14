@@ -30,6 +30,7 @@ export const MAX_ATTEMPTS_TO_FIX_BUILD_ERROR = 8;
 export interface CheckAndCommitOptions extends BaseEventData {
   repository: Repository;
   token: string;
+  skipBuild: boolean;
   rootPath: string;
   branch: string;
   repoSettings?: RepoSettings;
@@ -46,6 +47,7 @@ export interface CheckAndCommitOptions extends BaseEventData {
 export async function checkAndCommit({
   repository,
   token,
+  skipBuild,
   rootPath,
   branch,
   repoSettings,
@@ -61,13 +63,18 @@ export async function checkAndCommit({
 }: CheckAndCommitOptions) {
   let buildErrorMessage: string | undefined;
 
-  try {
-    await runBuildCheck({
-      ...baseEventData,
-      path: rootPath,
-      afterModifications: true,
-      repoSettings,
-    });
+  if (!skipBuild) {
+    try {
+      await runBuildCheck({
+        ...baseEventData,
+        path: rootPath,
+        afterModifications: true,
+        repoSettings,
+      });
+    } catch (error) {
+      const { message } = error as Error;
+      buildErrorMessage = message;
+    }
   } catch (error) {
     const { message } = error as Error;
     buildErrorMessage = message;

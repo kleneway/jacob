@@ -35,7 +35,7 @@ interface SimpleRepository {
 export async function getIssue(
   repository: SimpleRepository,
   token: string,
-  issue_number: number,
+  issue_number: number
 ) {
   const octokit = new Octokit({
     auth: token,
@@ -43,11 +43,18 @@ export async function getIssue(
     userAgent: "jacob",
   });
 
-  return octokit.issues.get({
+  const issue = await octokit.issues.get({
     owner: repository.owner.login,
     repo: repository.name,
     issue_number,
   });
+
+  const skipBuild = issue.data.body?.includes('--skip-build') || false;
+
+  return {
+    ...issue,
+    skipBuild,
+  };
 }
 
 export async function createRepoInstalledIssue(
