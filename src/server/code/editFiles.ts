@@ -41,6 +41,7 @@ export async function editFiles(params: EditFilesParams) {
     rootPath,
     sourceMap,
     repoSettings,
+    skipBuild: issue.body.includes('--skip-build'),
     ...baseEventData
   } = params;
   const snapshotUrl = getSnapshotUrl(issue.body);
@@ -164,6 +165,7 @@ export async function editFiles(params: EditFilesParams) {
     commitMessage: `JACoB PR for Issue ${issue.title}`,
     issue,
     newPrTitle: `JACoB PR for Issue ${issue.title}`,
+    skipBuild,
     newPrBody: `## Summary:\n\n${issue.body}\n\n## Plan:\n\n${
       extractedIssue.stepsToAddressIssue ?? ""
     }`,
