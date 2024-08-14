@@ -48,6 +48,7 @@ export function getEnv(repoSettings?: RepoSettings) {
 export interface RunBuildCheckParams extends BaseEventData {
   path: string;
   afterModifications: boolean;
+  skipBuild: boolean;
   repoSettings?: RepoSettings;
 }
 
@@ -55,6 +56,7 @@ export async function runBuildCheck({
   path,
   afterModifications,
   repoSettings,
+  skipBuild,
   ...baseEventData
 }: RunBuildCheckParams): ExecPromise {
   const env = getEnv(repoSettings);
@@ -107,27 +109,29 @@ export async function runBuildCheck({
         );
       }
     }
-    const buildResult = await executeWithLogRequiringSuccess({
-      ...baseEventData,
-      directory: path,
-      command: `${commandPrefix}${baseBuildCommand}`,
-      options: {
-        env,
-        timeout: BUILD_TIMEOUT,
-      },
-    });
-    if (!testCommand) {
-      return buildResult;
+    if (!skipBuild) {
+      const buildResult = await executeWithLogRequiringSuccess({
+        ...baseEventData,
+        directory: path,
+        command: `${commandPrefix}${baseBuildCommand}`,
+        options: {
+          env,
+          timeout: BUILD_TIMEOUT,
+        },
+      });
+      if (!testCommand) {
+        return buildResult;
+      }
+      return await executeWithLogRequiringSuccess({
+        ...baseEventData,
+        directory: path,
+        command: `${commandPrefix}${testCommand}`,
+        options: {
+          env,
+          timeout: TEST_TIMEOUT,
+        },
+      });
     }
-    return await executeWithLogRequiringSuccess({
-      ...baseEventData,
-      directory: path,
-      command: `${commandPrefix}${testCommand}`,
-      options: {
-        env,
-        timeout: TEST_TIMEOUT,
-      },
-    });
   } catch (error) {
     const { message, stdout, stderr } = error as ExecAsyncException;
     // Some tools (e.g. tsc) write to stdout instead of stderr
