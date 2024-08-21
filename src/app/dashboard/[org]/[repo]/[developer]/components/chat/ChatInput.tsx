@@ -1,5 +1,6 @@
 import { faArrowUp } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { ImageUploader } from "./ImageUploader";
 
 import {
   type FC,
@@ -13,7 +14,7 @@ import { Tooltip } from "react-tooltip";
 import { type Message, Role } from "~/types";
 
 interface Props {
-  onSend: (message: Message) => void;
+  onSend: (message: Message & { images: string[] }) => void;
   isResponding?: boolean;
   loading?: boolean;
 }
@@ -24,6 +25,7 @@ export const ChatInput: FC<Props> = ({
   loading = false,
 }) => {
   const [content, setContent] = useState<string>();
+  const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -42,8 +44,9 @@ export const ChatInput: FC<Props> = ({
       alert("Please enter a message");
       return;
     }
-    onSend({ role: Role.USER, content });
+    onSend({ role: Role.USER, content, images: uploadedImageUrls });
     setContent("");
+    setUploadedImageUrls([]);
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -53,6 +56,10 @@ export const ChatInput: FC<Props> = ({
       if (isResponding || loading) return;
       handleSend();
     }
+  };
+
+  const handleImageUpload = (urls: string[]) => {
+    setUploadedImageUrls((prevUrls) => [...prevUrls, ...urls]);
   };
 
   useEffect(() => {
@@ -81,6 +88,11 @@ export const ChatInput: FC<Props> = ({
           {content?.length ?? 0}/3000
         </p>
         <div className="mt-2 flex w-full items-center justify-end">
+          <ImageUploader
+            onUploadComplete={handleImageUpload}
+            data-tooltip-id="tooltip_chatinput"
+            data-tooltip-content="Upload images"
+          />
           <button
             onClick={handleSend}
             className="h-8 w-8 rounded-full border border-gray-400 bg-white text-black"
