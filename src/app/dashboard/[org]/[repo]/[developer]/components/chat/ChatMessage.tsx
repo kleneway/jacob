@@ -105,6 +105,14 @@ export const ChatMessage: FC<Props> = ({
           className={`markdown-chat flex flex-col text-left font-figtree ${message.role === Role.ASSISTANT ? "max-w-[100%]" : "max-w-[95%] bg-gradient-to-l from-blueGray-700/50 to-blueGray-800/50"} hide-scrollbar rounded-md px-2  shadow-md`}
           style={{ overflowWrap: "anywhere" }}
         >
+          {message.imageUrls?.map((url, index) => (
+            <img
+              key={index}
+              src={url}
+              alt="Uploaded"
+              className="my-2 h-auto max-w-full rounded-md"
+            />
+          ))}
           <Markdown
             remarkPlugins={[gfm]}
             className={`px-1 py-1`}

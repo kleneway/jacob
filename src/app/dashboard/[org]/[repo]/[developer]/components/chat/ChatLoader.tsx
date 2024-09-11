@@ -16,3 +16,11 @@ export const ChatLoader: FC = () => {
     </div>
   );
 };
+
+export const ImageUploadLoader: FC = () => {
+  return (
+    <div className="flex items-center justify-center">
+      <div className="h-5 w-5 animate-spin rounded-full border-2 border-light-blue border-t-transparent"></div>
+    </div>
+  );
+};
