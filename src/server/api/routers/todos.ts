@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { db } from "~/server/db/db";
 import { TodoStatus } from "~/server/db/enums";
-import { researchIssue } from "~/server/agent/research";
+import { researchIssue, ResearchAgentActionType, callFunction } from "~/server/agent/research";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { type Todo } from "./events";
 
@@ -120,5 +120,27 @@ export const todoRouter = createTRPCRouter({
     .mutation(async ({ input: { id } }): Promise<{ id: number }> => {
       await db.todos.find(id).delete();
       return { id };
+    }),
+
+  researchIssue: protectedProcedure
+    .input(
+      z.object({
+        issueId: z.number(),
+      }),
+    )
+    .mutation(async ({ input: { issueId } }): Promise<void> => {
+      try {
+        const todo = await db.todos.findOne({ issueId });
+        if (!todo) {
+          throw new Error("Todo not found for the given issueId");
+        }
+        await callFunction(ResearchAgentActionType.RESEARCH_ISSUE, {
+          description: todo.description,
+          todoId: todo.id,
+          issueId: issueId,
+        });
+      } catch (error) {
+        throw new Error(`Failed to research issue: ${error.message}`);
+      }
     }),
 });
