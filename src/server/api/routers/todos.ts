@@ -4,6 +4,10 @@ import { TodoStatus } from "~/server/db/enums";
 import { researchIssue } from "~/server/agent/research";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { type Todo } from "./events";
+const researchIssueInput = z.object({
+    todoId: z.number(),
+    issueId: z.number(),
+});
 
 export const todoRouter = createTRPCRouter({
   getAll: protectedProcedure
@@ -121,4 +125,9 @@ export const todoRouter = createTRPCRouter({
       await db.todos.find(id).delete();
       return { id };
     }),
+    researchIssue: protectedProcedure
+        .input(researchIssueInput)
+        .mutation(async ({ input }): Promise<void> => {
+            await researchIssue(input.todoId, input.issueId);
+        }),
 });
