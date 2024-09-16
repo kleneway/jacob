@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import type Todo from "../Todo";
 import { type Issue } from "../Todo";
+import { type ResearchItem } from "../Todo";
 import LoadingIndicator from "../../components/LoadingIndicator";
 import { TodoStatus } from "~/server/db/enums";
 import { api } from "~/trpc/react";
@@ -25,7 +26,7 @@ const Issue: React.FC<IssueProps> = ({
 }) => {
   console.log("selectedIssue", selectedIssue);
   const { data: research, isLoading: isLoadingResearch } =
-    api.events.getResearch.useQuery({
+    api.todos.getResearch.useQuery({
       todoId: selectedTodo.id,
       issueId: selectedTodo.issueId ?? 0,
     });
@@ -42,6 +43,9 @@ const Issue: React.FC<IssueProps> = ({
   }, [selectedIssue]);
 
   const { mutateAsync: updateIssue } = api.github.updateIssue.useMutation();
+  const { mutateAsync: researchIssue, isLoading: isGeneratingResearch } =
+    api.todos.researchIssue.useMutation();
+  const utils = api.useContext();
 
   const handleSaveIssue = async () => {
     try {
@@ -78,6 +82,23 @@ const Issue: React.FC<IssueProps> = ({
     } catch (error) {
       console.error("Error starting work:", error);
       toast.error("Failed to start work on the issue.");
+    }
+  };
+
+  const handleGenerateResearch = async () => {
+    try {
+      await researchIssue({
+        todoId: selectedTodo.id,
+        issueId: selectedTodo.issueId ?? 0,
+      });
+      toast.success("Research generated successfully!");
+      await utils.todos.getResearch.invalidate({
+        todoId: selectedTodo.id,
+        issueId: selectedTodo.issueId ?? 0,
+      });
+    } catch (error) {
+      console.error("Error generating research:", error);
+      toast.error("Failed to generate research.");
     }
   };
 
@@ -208,13 +229,21 @@ const Issue: React.FC<IssueProps> = ({
           {isLoadingResearch ? (
             <LoadingIndicator />
           ) : (
-            research?.map((item) => (
+            research?.map((item: ResearchItem) => (
               <div className="markdown-chat" key={item.id}>
                 <MarkdownRenderer>{item.answer}</MarkdownRenderer>
               </div>
             ))
           )}
         </div>
+        <button
+          onClick={handleGenerateResearch}
+          disabled={isGeneratingResearch}
+          className="mt-4 rounded-full bg-sunset-500 px-4 py-2 text-white dark:bg-purple-700"
+          aria-label="Generate Research"
+        >
+          {isGeneratingResearch ? "Generating..." : "Generate Research"}
+        </button>
       </div>
     </>
   );
