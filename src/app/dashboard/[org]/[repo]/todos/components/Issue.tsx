@@ -25,7 +25,7 @@ const Issue: React.FC<IssueProps> = ({
 }) => {
   console.log("selectedIssue", selectedIssue);
   const { data: research, isLoading: isLoadingResearch } =
-    api.events.getResearch.useQuery({
+    api.todos.getResearch.useQuery({
       todoId: selectedTodo.id,
       issueId: selectedTodo.issueId ?? 0,
     });
@@ -87,7 +87,7 @@ const Issue: React.FC<IssueProps> = ({
     try {
       await researchIssue({ todoId: selectedTodo.id, issueId: selectedTodo.issueId ?? 0 });
       toast.success("Research generated successfully!");
-      await utils.events.getResearch.invalidate({ todoId: selectedTodo.id, issueId: selectedTodo.issueId ?? 0 });
+      await utils.todos.getResearch.invalidate({ todoId: selectedTodo.id, issueId: selectedTodo.issueId ?? 0 });
     } catch (error) {
       console.error("Error generating research:", error);
       toast.error("Failed to generate research.");
@@ -231,7 +231,8 @@ const Issue: React.FC<IssueProps> = ({
         <button
           onClick={handleGenerateResearch}
           disabled={isGeneratingResearch}
-          className="mt-4 rounded bg-sunset-500 px-4 py-2 text-white dark:bg-purple-700"
+          className="mt-4 rounded-full bg-sunset-500 px-4 py-2 text-white dark:bg-purple-700"
+          aria-label="Generate Research"
         >
           {isGeneratingResearch ? "Generating..." : "Generate Research"}
         </button>
