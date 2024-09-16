@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { api } from "~/trpc/react";
 import { trpcClient } from "~/trpc/client";
 import { type Todo } from "~/server/api/routers/events";
+import { type Research } from "~/server/db/tables/research.table";
 import { type Project } from "~/server/db/tables/projects.table";
 import LoadingIndicator from "../components/LoadingIndicator";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
@@ -27,6 +28,7 @@ const Todo: React.FC<TodoProps> = ({ org, repo, project }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoadingIssue, setIsLoadingIssue] = useState(false);
   const [filteredTodos, setFilteredTodos] = useState<Todo[]>([]);
+  const [research, setResearch] = useState<Research[]>([]);
   const {
     data: todos,
     isLoading: isLoadingTodos,
@@ -34,6 +36,14 @@ const Todo: React.FC<TodoProps> = ({ org, repo, project }) => {
   } = api.todos.getAll.useQuery({
     projectId: project.id,
   });
+
+  const { refetch: refetchResearch } = api.events.getResearch.useQuery(
+    {
+      todoId: selectedTodo?.id ?? 0,
+      issueId: selectedTodo?.issueId ?? 0,
+    },
+    { enabled: false }
+  );
 
   // const { data: codebaseContext, isLoading: isLoadingCodebaseContext } =
   //   api.codebaseContext.getAll.useQuery({
@@ -70,7 +80,7 @@ const Todo: React.FC<TodoProps> = ({ org, repo, project }) => {
     };
 
     void fetchIssue();
-  }, [selectedTodo, org, repo]);
+  
 
   useEffect(() => {
     // Filter todos based on searchQuery
@@ -98,6 +108,19 @@ const Todo: React.FC<TodoProps> = ({ org, repo, project }) => {
       setSelectedTodo(todo);
     }
   };
+  const handleResearchComplete = async () => {
+    if (selectedTodo?.id && selectedTodo?.issueId) {
+      try {
+        const result = await refetchResearch();
+        if (result.data) {
+          setResearch(result.data);
+        }
+      } catch (error) {
+        console.error("Error refetching research:", error);
+      }
+    }
+  };
+
 
   return (
     <div className="flex h-full w-full flex-col overflow-clip rounded-md  dark:bg-gray-900 lg:flex-row">
@@ -147,6 +170,8 @@ const Todo: React.FC<TodoProps> = ({ org, repo, project }) => {
             selectedTodo={selectedTodo}
             selectedIssue={selectedIssue}
             isLoadingIssue={isLoadingIssue}
+            research={research}
+            onResearchComplete={handleResearchComplete}
             org={org}
             repo={repo}
           />
