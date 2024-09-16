@@ -42,7 +42,8 @@ const Issue: React.FC<IssueProps> = ({
   }, [selectedIssue]);
 
   const { mutateAsync: updateIssue } = api.github.updateIssue.useMutation();
-  const { mutateAsync: researchIssue, isLoading: isGeneratingResearch } = api.todos.researchIssue.useMutation();
+  const { mutateAsync: researchIssue, isLoading: isGeneratingResearch } =
+    api.todos.researchIssue.useMutation();
   const utils = api.useContext();
 
   const handleSaveIssue = async () => {
@@ -85,9 +86,15 @@ const Issue: React.FC<IssueProps> = ({
 
   const handleGenerateResearch = async () => {
     try {
-      await researchIssue({ todoId: selectedTodo.id, issueId: selectedTodo.issueId ?? 0 });
+      await researchIssue({
+        todoId: selectedTodo.id,
+        issueId: selectedTodo.issueId ?? 0,
+      });
       toast.success("Research generated successfully!");
-      await utils.todos.getResearch.invalidate({ todoId: selectedTodo.id, issueId: selectedTodo.issueId ?? 0 });
+      await utils.todos.getResearch.invalidate({
+        todoId: selectedTodo.id,
+        issueId: selectedTodo.issueId ?? 0,
+      });
     } catch (error) {
       console.error("Error generating research:", error);
       toast.error("Failed to generate research.");

@@ -5,9 +5,13 @@ import { researchIssue } from "~/server/agent/research";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { type Todo } from "./events";
 const researchIssueInput = z.object({
-    todoId: z.number(),
-    issueId: z.number(),
-});
+  todoId: z.number(),
+  issueId: z.number(),
+  description: z.string(),
+  arg2: z.string(),
+  arg5: z.string(),
+  arg6: z.number(),
+ });
 
 export const todoRouter = createTRPCRouter({
   getAll: protectedProcedure
@@ -125,9 +129,21 @@ export const todoRouter = createTRPCRouter({
       await db.todos.find(id).delete();
       return { id };
     }),
-    researchIssue: protectedProcedure
-        .input(researchIssueInput)
-        .mutation(async ({ input }): Promise<void> => {
-            await researchIssue(input.todoId, input.issueId);
-        }),
-});
+  researchIssue: protectedProcedure
+    .input(researchIssueInput)
+    .mutation(async ({ input }): Promise<void> => {
+      await researchIssue(input.todoId, input.issueId);
+    }),
+      await researchIssue(input.description, input.arg2, input.todoId, input.issueId, input.arg5, input.arg6);
+
+  getResearch: protectedProcedure
+    .input(
+      z.object({
+        todoId: z.number(),
+        issueId: z.number(),
+      })
+    )
+    .query(async ({ input }) => {
+      const researchItems = await db.research.where({ todoId: input.todoId, issueId: input.issueId }).all();
+      return researchItems;
+    }),
