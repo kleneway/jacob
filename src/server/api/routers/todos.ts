@@ -1,7 +1,11 @@
 import { z } from "zod";
 import { db } from "~/server/db/db";
 import { TodoStatus } from "~/server/db/enums";
-import { researchIssue, ResearchAgentActionType, callFunction } from "~/server/agent/research";
+import {
+  researchIssue,
+  ResearchAgentActionType,
+  callFunction,
+} from "~/server/agent/research";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { type Todo } from "./events";
 

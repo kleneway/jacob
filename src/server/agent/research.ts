@@ -459,23 +459,25 @@ export async function researchInternet(query: string): Promise<string> {
     "llama-3.1-sonar-large-128k-online",
   );
 
+  async function generateResearch(issueId: number): Promise<string> {
+    try {
+      const researchItems = await db.research.findMany({
+        where: { issueId },
+      });
 
-async function generateResearch(issueId: number): Promise<string> {
-  try {
-    const researchItems = await db.research.findMany({
-      where: { issueId },
-    });
+      const researchSummary = researchItems
+        .map(
+          (item) =>
+            `Type: ${item.type}\nQuestion: ${item.question}\nAnswer: ${item.answer}`,
+        )
+        .join("\n\n");
 
-    const researchSummary = researchItems.map(item => 
-      `Type: ${item.type}\nQuestion: ${item.question}\nAnswer: ${item.answer}`
-    ).join('\n\n');
-
-    return `Generated research items for issue ${issueId}:\n\n${researchSummary}`;
-  } catch (error) {
-    console.error(`Error generating research for issue ${issueId}:`, error);
-    return `Failed to generate research for issue ${issueId}. Error: ${error.message}`;
+      return `Generated research items for issue ${issueId}:\n\n${researchSummary}`;
+    } catch (error) {
+      console.error(`Error generating research for issue ${issueId}:`, error);
+      return `Failed to generate research for issue ${issueId}. Error: ${error.message}`;
+    }
   }
-}
 
   return result ?? "No response from the AI model.";
 }

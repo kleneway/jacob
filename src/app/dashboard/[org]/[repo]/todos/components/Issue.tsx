@@ -24,14 +24,20 @@ const Issue: React.FC<IssueProps> = ({
   org,
   repo,
 }) => {
-  const { data: research, isLoading: isLoadingResearch, refetch: refetchResearch } =
-    api.events.getResearch.useQuery({
+  const {
+    data: research,
+    isLoading: isLoadingResearch,
+    refetch: refetchResearch,
+  } = api.events.getResearch.useQuery(
+    {
       todoId: selectedTodo.id,
       issueId: selectedTodo.issueId ?? 0,
-    }, {
+    },
+    {
       enabled: !!selectedTodo.id && !!selectedTodo.issueId,
       refetchOnWindowFocus: false,
-    });
+    },
+  );
 
   const [isEditingIssue, setIsEditingIssue] = useState(false);
   const [issueTitle, setIssueTitle] = useState(selectedIssue?.title ?? "");
