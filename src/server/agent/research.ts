@@ -20,6 +20,7 @@ export enum ResearchAgentActionType {
   ResearchCodebase = "ResearchCodebase",
   ResearchInternet = "ResearchInternet",
   AskProjectOwner = "AskProjectOwner",
+  GenerateResearch = "GenerateResearch",
   ResearchComplete = "ResearchComplete",
 }
 
@@ -83,6 +84,24 @@ const researchTools: OpenAI.ChatCompletionTool[] = [
           },
         },
         required: ["query"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: ResearchAgentActionType.GenerateResearch,
+      description:
+        "Generate research items for a given issue based on the gathered information.",
+      parameters: {
+        type: "object",
+        properties: {
+          issueId: {
+            type: "number",
+            description: "The ID of the issue to generate research for.",
+          },
+        },
+        required: ["issueId"],
       },
     },
   },
@@ -235,7 +254,7 @@ export const researchIssue = async function (
 };
 
 async function callFunction(
-  functionName: ResearchAgentActionType,
+  githubIssue: string | number,
   args: { query: string },
   githubIssue: string,
   sourceMap: string,
@@ -254,6 +273,8 @@ async function callFunction(
     case ResearchAgentActionType.ResearchInternet:
       return await researchInternet(args.query);
     case ResearchAgentActionType.AskProjectOwner:
+    case ResearchAgentActionType.GenerateResearch:
+      return await generateResearch(Number(githubIssue));
       // just return the question for now
       return args.query;
     default:
@@ -437,6 +458,26 @@ export async function researchInternet(query: string): Promise<string> {
     null,
     "llama-3.1-sonar-large-128k-online",
   );
+
+  async function generateResearch(issueId: number): Promise<string> {
+    try {
+      const researchItems = await db.research.findMany({
+        where: { issueId },
+      });
+
+      const researchSummary = researchItems
+        .map(
+          (item) =>
+            `Type: ${item.type}\nQuestion: ${item.question}\nAnswer: ${item.answer}`,
+        )
+        .join("\n\n");
+
+      return `Generated research items for issue ${issueId}:\n\n${researchSummary}`;
+    } catch (error) {
+      console.error(`Error generating research for issue ${issueId}:`, error);
+      return `Failed to generate research for issue ${issueId}. Error: ${error.message}`;
+    }
+  }
 
   return result ?? "No response from the AI model.";
 }

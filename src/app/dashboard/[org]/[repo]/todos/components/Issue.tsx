@@ -1,11 +1,12 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import type Todo from "../Todo";
 import { type Issue } from "../Todo";
 import LoadingIndicator from "../../components/LoadingIndicator";
 import { TodoStatus } from "~/server/db/enums";
 import { api } from "~/trpc/react";
-import { useState } from "react";
 import MarkdownRenderer from "../../components/MarkdownRenderer";
+import { Button } from "~/components/ui/button";
+import { Loader2 } from "lucide-react";
 import { toast } from "react-toastify";
 
 interface IssueProps {
@@ -23,18 +24,27 @@ const Issue: React.FC<IssueProps> = ({
   org,
   repo,
 }) => {
-  console.log("selectedIssue", selectedIssue);
-  const { data: research, isLoading: isLoadingResearch } =
-    api.events.getResearch.useQuery({
+  const {
+    data: research,
+    isLoading: isLoadingResearch,
+    refetch: refetchResearch,
+  } = api.events.getResearch.useQuery(
+    {
       todoId: selectedTodo.id,
       issueId: selectedTodo.issueId ?? 0,
-    });
+    },
+    {
+      enabled: !!selectedTodo.id && !!selectedTodo.issueId,
+      refetchOnWindowFocus: false,
+    },
+  );
 
   const [isEditingIssue, setIsEditingIssue] = useState(false);
   const [issueTitle, setIssueTitle] = useState(selectedIssue?.title ?? "");
   const [issueBody, setIssueBody] = useState(selectedIssue?.body ?? "");
   const [isEditingExit, setIsEditingExit] = useState(false);
   const [exitCriteria, setExitCriteria] = useState("[] Add exit criteria");
+  const [isResearching, setIsResearching] = useState(false);
 
   useEffect(() => {
     setIssueTitle(selectedIssue?.title ?? "");
@@ -42,6 +52,7 @@ const Issue: React.FC<IssueProps> = ({
   }, [selectedIssue]);
 
   const { mutateAsync: updateIssue } = api.github.updateIssue.useMutation();
+  const { mutateAsync: researchIssue } = api.todos.researchIssue.useMutation();
 
   const handleSaveIssue = async () => {
     try {
@@ -78,6 +89,22 @@ const Issue: React.FC<IssueProps> = ({
     } catch (error) {
       console.error("Error starting work:", error);
       toast.error("Failed to start work on the issue.");
+    }
+  };
+
+  const handleResearch = async () => {
+    setIsResearching(true);
+    try {
+      await researchIssue({
+        issueId: selectedTodo.issueId ?? 0,
+      });
+      await refetchResearch();
+      toast.success("Research generated successfully!");
+    } catch (error) {
+      console.error("Error generating research:", error);
+      toast.error("Failed to generate research.");
+    } finally {
+      setIsResearching(false);
     }
   };
 
@@ -205,6 +232,16 @@ const Issue: React.FC<IssueProps> = ({
           <h3 className="mb-3 text-lg font-semibold text-slate-700 dark:text-slate-300">
             Research
           </h3>
+          <Button
+            onClick={handleResearch}
+            disabled={isResearching}
+            className="mb-4"
+          >
+            {isResearching ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : null}
+            {isResearching ? "Researching..." : "Research"}
+          </Button>
           {isLoadingResearch ? (
             <LoadingIndicator />
           ) : (
