@@ -15,6 +15,7 @@ export class ResearchTable extends BaseTable {
     type: t.enum("research_type_values", RESEARCH_TYPE_VALUES),
     question: t.text(),
     answer: t.text(),
+    createdAt: t.timestamp().defaultNow(),
     ...t.timestamps(),
   }));
 }
