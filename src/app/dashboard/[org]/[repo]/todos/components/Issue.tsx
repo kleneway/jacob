@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import type Todo from "../Todo";
 import { type Issue } from "../Todo";
+import { type ResearchItem } from "../Todo";
 import LoadingIndicator from "../../components/LoadingIndicator";
 import { TodoStatus } from "~/server/db/enums";
 import { api } from "~/trpc/react";
@@ -228,7 +229,7 @@ const Issue: React.FC<IssueProps> = ({
           {isLoadingResearch ? (
             <LoadingIndicator />
           ) : (
-            research?.map((item) => (
+            research?.map((item: ResearchItem) => (
               <div className="markdown-chat" key={item.id}>
                 <MarkdownRenderer>{item.answer}</MarkdownRenderer>
               </div>
