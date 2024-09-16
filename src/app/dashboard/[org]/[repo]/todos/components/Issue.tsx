@@ -42,6 +42,8 @@ const Issue: React.FC<IssueProps> = ({
   }, [selectedIssue]);
 
   const { mutateAsync: updateIssue } = api.github.updateIssue.useMutation();
+  const { mutateAsync: researchIssue, isLoading: isGeneratingResearch } = api.todos.researchIssue.useMutation();
+  const utils = api.useContext();
 
   const handleSaveIssue = async () => {
     try {
@@ -78,6 +80,17 @@ const Issue: React.FC<IssueProps> = ({
     } catch (error) {
       console.error("Error starting work:", error);
       toast.error("Failed to start work on the issue.");
+    }
+  };
+
+  const handleGenerateResearch = async () => {
+    try {
+      await researchIssue({ todoId: selectedTodo.id, issueId: selectedTodo.issueId ?? 0 });
+      toast.success("Research generated successfully!");
+      await utils.events.getResearch.invalidate({ todoId: selectedTodo.id, issueId: selectedTodo.issueId ?? 0 });
+    } catch (error) {
+      console.error("Error generating research:", error);
+      toast.error("Failed to generate research.");
     }
   };
 
@@ -215,6 +228,13 @@ const Issue: React.FC<IssueProps> = ({
             ))
           )}
         </div>
+        <button
+          onClick={handleGenerateResearch}
+          disabled={isGeneratingResearch}
+          className="mt-4 rounded bg-sunset-500 px-4 py-2 text-white dark:bg-purple-700"
+        >
+          {isGeneratingResearch ? "Generating..." : "Generate Research"}
+        </button>
       </div>
     </>
   );
