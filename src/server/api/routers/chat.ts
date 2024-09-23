@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
+import { chatSessions } from "~/server/db/tables/chatSessions.table";
 import { sendGptRequestWithSchema } from "~/server/openai/request";
 import { standardizePath } from "~/server/utils/files";
 
@@ -17,6 +18,51 @@ const EvaluationSchema = z.object({
 export type Evaluation = z.infer<typeof EvaluationSchema>;
 
 export const chatRouter = createTRPCRouter({
+  getChatSessions: protectedProcedure.query(async ({ ctx }) => {
+    try {
+      const sessions = await chatSessions.findMany({
+        where: { userId: ctx.session.user.id },
+        orderBy: { sessionStart: "desc" },
+        select: {
+          id: true,
+          sessionStart: true,
+          summary: true,
+        },
+      });
+      return sessions;
+    } catch (error) {
+      console.error("Error fetching chat sessions", error);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to fetch chat sessions",
+      });
+    }
+  }),
+
+  getChatSessionMessages: protectedProcedure
+    .input(z.object({ sessionId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      try {
+        const messages = await chatSessions.findFirst({
+          where: { id: input.sessionId, userId: ctx.session.user.id },
+          select: { messages: true },
+        });
+        if (!messages) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Chat session not found",
+          });
+        }
+        return messages.messages;
+      } catch (error) {
+        console.error("Error fetching chat session messages", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch chat session messages",
+        });
+      }
+    }),
+
   evaluateChatMessage: protectedProcedure
     .input(
       z.object({
