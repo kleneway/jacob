@@ -40,7 +40,9 @@ export function Chat({ project, contextItems, org, repo }: ChatProps) {
   const [isCreatingArtifact, setIsCreatingArtifact] = useState(false);
   const [showLoadingCard, setShowLoadingCard] = useState(false);
   const [codeFiles, setCodeFiles] = useState<CodeFile[]>([]);
-  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(
+    null,
+  );
 
   const { messages, input, handleInputChange, handleSubmit, isLoading } =
     useChat({
@@ -261,7 +263,7 @@ export function Chat({ project, contextItems, org, repo }: ChatProps) {
   return (
     <div className="flex h-full w-full flex-row space-x-4">
       <div className="mx-auto flex h-full  w-full max-w-4xl flex-row  overflow-clip rounded-md bg-white/50 p-4 shadow-sm dark:bg-slate-800">
-        <div className="flex flex-col mr-4">
+        <div className="mr-4 flex flex-col">
           <ChatHistoryDropdown onSelectSession={handleSelectSession} />
         </div>
         <div className="mx-auto flex flex-1 flex-col">

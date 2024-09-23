@@ -1,8 +1,10 @@
-import { table, text, timestamp, uuid } from 'orchid-orm';
+import { table, text, timestamp, uuid } from "orchid-orm";
 
-export const chatSessions = table('chat_sessions', {
+export const chatSessions = table("chat_sessions", {
   id: uuid().primaryKey().defaultRandom(),
-  userId: uuid().notNull().references(() => users.id),
+  userId: uuid()
+    .notNull()
+    .references(() => users.id),
   sessionStart: timestamp().notNull().defaultNow(),
   sessionEnd: timestamp(),
   summary: text(),

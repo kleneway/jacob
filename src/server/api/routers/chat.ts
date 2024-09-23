@@ -18,27 +18,26 @@ const EvaluationSchema = z.object({
 export type Evaluation = z.infer<typeof EvaluationSchema>;
 
 export const chatRouter = createTRPCRouter({
-  getChatSessions: protectedProcedure
-    .query(async ({ ctx }) => {
-      try {
-        const sessions = await chatSessions.findMany({
-          where: { userId: ctx.session.user.id },
-          orderBy: { sessionStart: 'desc' },
-          select: {
-            id: true,
-            sessionStart: true,
-            summary: true,
-          },
-        });
-        return sessions;
-      } catch (error) {
-        console.error("Error fetching chat sessions", error);
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to fetch chat sessions",
-        });
-      }
-    }),
+  getChatSessions: protectedProcedure.query(async ({ ctx }) => {
+    try {
+      const sessions = await chatSessions.findMany({
+        where: { userId: ctx.session.user.id },
+        orderBy: { sessionStart: "desc" },
+        select: {
+          id: true,
+          sessionStart: true,
+          summary: true,
+        },
+      });
+      return sessions;
+    } catch (error) {
+      console.error("Error fetching chat sessions", error);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to fetch chat sessions",
+      });
+    }
+  }),
 
   getChatSessionMessages: protectedProcedure
     .input(z.object({ sessionId: z.string().uuid() }))
@@ -49,7 +48,10 @@ export const chatRouter = createTRPCRouter({
           select: { messages: true },
         });
         if (!messages) {
-          throw new TRPCError({ code: "NOT_FOUND", message: "Chat session not found" });
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Chat session not found",
+          });
         }
         return messages.messages;
       } catch (error) {
