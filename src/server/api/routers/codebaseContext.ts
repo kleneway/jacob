@@ -116,7 +116,10 @@ export const codebaseContextRouter = createTRPCRouter({
         },
       }): Promise<ContextItem[]> => {
         if (!accessToken) {
-          throw new TRPCError({ code: "UNAUTHORIZED", message: "Not authenticated" });
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "Not authenticated",
+          });
         }
         return await searchCodebase(org, repo, query, accessToken);
       },
