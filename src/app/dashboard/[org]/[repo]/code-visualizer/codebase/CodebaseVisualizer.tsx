@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Tree } from "./Tree";
 import CodebaseDetails from "./CodebaseDetails";
 import { type ContextItem } from "~/server/utils/codebaseContext";
 import { type FileType } from "./types";
+import SearchBar from "./SearchBar";
+import SearchResults from "./SearchResults";
 
 interface CodebaseVisualizerProps {
   contextItems: ContextItem[];
@@ -26,6 +28,8 @@ export const CodebaseVisualizer: React.FC<CodebaseVisualizerProps> = ({
   const [detailsWidth, setDetailsWidth] = useState(30);
   const [allFiles, setAllFiles] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<"folder" | "taxonomy">("folder");
+  const [searchResults, setSearchResults] = useState<ContextItem[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -129,6 +133,21 @@ export const CodebaseVisualizer: React.FC<CodebaseVisualizerProps> = ({
     setDetailsWidth(detailsWidth === 30 ? 50 : 30);
   };
 
+  const handleSearch = useCallback((results: ContextItem[]) => {
+    setSearchResults(results);
+    setIsSearching(true);
+  }, []);
+
+  const handleSearchResultSelect = useCallback((filePath: string) => {
+    handleNodeClick(filePath);
+    setIsSearching(false);
+  }, [handleNodeClick]);
+
+  const handleCloseSearch = useCallback(() => {
+    setSearchResults([]);
+    setIsSearching(false);
+  }, []);
+
   if (!isMounted) {
     return null;
   }
@@ -139,6 +158,7 @@ export const CodebaseVisualizer: React.FC<CodebaseVisualizerProps> = ({
         <div className="flex w-full flex-col">
           <div className="flex h-12 w-full flex-row items-center justify-between bg-aurora-100/50 p-2 text-left dark:bg-blueGray-900/30">
             <div>
+            <SearchBar org="org" repo="repo" onSearch={handleSearch} />
               {currentPath.map((part, index) => (
                 <React.Fragment key={index}>
                   <span className="text-gray-500 dark:text-blueGray-400">
@@ -187,24 +207,32 @@ export const CodebaseVisualizer: React.FC<CodebaseVisualizerProps> = ({
             transition={{ duration: 0.3 }}
           >
             <Tree
-              data={treeData}
-              maxDepth={12}
-              colorEncoding="type"
-              filesChanged={[]}
-              customFileColors={{}}
-              onNodeClick={handleNodeClick}
-              width={
-                selectedItem
-                  ? dimensions.width * ((100 - detailsWidth) / 100)
-                  : dimensions.width
-              }
-              height={dimensions.height}
-              selectedItem={selectedItem}
-              selectedFolder={"/" + currentPath?.join("/")}
-              viewMode={viewMode}
-              theme={theme}
-            />
-          </motion.div>
+            {isSearching ? (
+              <SearchResults
+                results={searchResults}
+                onSelect={handleSearchResultSelect}
+                onClose={handleCloseSearch}
+              />
+            ) : (
+              <Tree
+                data={treeData}
+                maxDepth={12}
+                colorEncoding="type"
+                filesChanged={[]}
+                customFileColors={{}}
+                onNodeClick={handleNodeClick}
+                width={
+                  selectedItem
+                    ? dimensions.width * ((100 - detailsWidth) / 100)
+                    : dimensions.width
+                }
+                height={dimensions.height}
+                selectedItem={selectedItem}
+                selectedFolder={"/" + currentPath?.join("/")}
+                viewMode={viewMode}
+                theme={theme}
+              />
+            )}
         </div>
         <AnimatePresence>
           {selectedItem && (

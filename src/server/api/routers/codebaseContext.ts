@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { db } from "~/server/db/db";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
+import { searchCodebase } from "~/server/ai/search";
 import { type ContextItem } from "~/server/utils/codebaseContext";
 import { Octokit } from "@octokit/rest";
 import { TRPCError } from "@trpc/server";
@@ -97,6 +98,30 @@ export const codebaseContextRouter = createTRPCRouter({
         },
       }): Promise<void> => {
         await generateCodebaseContext(org, repoName, accessToken);
+      },
+    ),
+  searchCodebase: protectedProcedure
+    .input(
+      z.object({
+        org: z.string(),
+        repo: z.string(),
+        query: z.string(),
+      }),
+    )
+    .query(
+      async ({
+        input: { org, repo, query },
+        ctx: {
+          session: { accessToken },
+        },
+      }): Promise<ContextItem[]> => {
+        if (!accessToken) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "Not authenticated",
+          });
+        }
+        return await searchCodebase(org, repo, query, accessToken);
       },
     ),
 });
