@@ -17,6 +17,8 @@ interface TodoItemProps {
   onSelect: (todoId: number) => void;
   selected: boolean;
   index: number;
+  isGenerating: boolean;
+  onGenerateResearch: () => void;
 }
 
 export const TodoItem: React.FC<TodoItemProps> = ({
@@ -27,6 +29,8 @@ export const TodoItem: React.FC<TodoItemProps> = ({
   onSelect,
   selected,
   index,
+  isGenerating,
+  onGenerateResearch,
 }) => {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const statusColors = {
@@ -127,6 +131,20 @@ export const TodoItem: React.FC<TodoItemProps> = ({
           </a>
         )}
       </div>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onGenerateResearch();
+        }}
+        disabled={isGenerating}
+        className={`mt-2 rounded px-3 py-1 text-sm ${
+          isGenerating
+            ? "cursor-not-allowed bg-gray-300 text-gray-600"
+            : "bg-blue-500 text-white hover:bg-blue-600"
+        }`}
+      >
+        {isGenerating ? "Generating..." : "Generate Research"}
+      </button>
 
       {showConfirmation && (
         <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
