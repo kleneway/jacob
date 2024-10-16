@@ -170,7 +170,7 @@ export function Chat({ contextItems, org, repo, selectedFilePath }: ChatProps) {
         toast.error("Selected file not found in the codebase context.");
       }
     }
-  }, [selectedFilePath, contextItems]);
+  }, [selectedFilePath, contextItems, refetchCodeContent]);
 
   const handleSearchResultSelect = (filePath: string) => {
     setSelectedFiles([filePath]);
