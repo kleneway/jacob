@@ -69,7 +69,6 @@ export const renderers: Partial<Components> = {
             style={props.theme === "dark" ? oneDark : oneLight}
             language={match[1]}
             PreTag="div"
-            {...props}
           >
             {String(children).replace(/\n$/, "")}
           </SyntaxHighlighter>
