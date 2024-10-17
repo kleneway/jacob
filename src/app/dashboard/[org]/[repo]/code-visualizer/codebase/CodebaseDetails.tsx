@@ -10,6 +10,7 @@ import {
   faChevronDown,
   faCopy,
   faCheck,
+  faComment,
 } from "@fortawesome/free-solid-svg-icons";
 import Mermaid from "./Mermaid";
 import Markdown, { type Components } from "react-markdown";
@@ -25,6 +26,7 @@ import {
 } from "react-syntax-highlighter/dist/cjs/styles/prism";
 import { faClipboard } from "@fortawesome/free-solid-svg-icons";
 import { toast } from "react-toastify";
+import { useRouter } from "next/navigation";
 
 interface CodebaseDetailsProps {
   item: ContextItem;
@@ -105,6 +107,7 @@ const CodebaseDetails: React.FC<CodebaseDetailsProps> = ({
   theme,
 }) => {
   const [copyStatus, setCopyStatus] = useState(false);
+  const router = useRouter();
 
   const handleCopy = () => {
     navigator.clipboard
@@ -118,8 +121,17 @@ const CodebaseDetails: React.FC<CodebaseDetailsProps> = ({
       });
   };
 
+  const handleSendToChat = () => {
+    if (item.file) {
+      const encodedFilePath = encodeURIComponent(item.file);
+      router.push(`/dashboard/${item.file.split("/")[1]}/${item.file.split("/")[2]}/chat?file_path=${encodedFilePath}`);
+    } else {
+      toast.error("No file selected");
+    }
+  };
+
   return (
-    <div className="details hide-scrollbar h-full overflow-scroll bg-white text-left text-sm text-gray-800 dark:bg-gray-900 dark:text-white">
+    <div className="details hide-scrollbar relative h-full overflow-scroll bg-white text-left text-sm text-gray-800 dark:bg-gray-900 dark:text-white">
       <div className="sticky top-0 z-10 flex h-12 items-center justify-between bg-gradient-to-r from-aurora-50 to-aurora-100/70 px-4 shadow-sm dark:from-gray-800 dark:to-gray-700">
         <div className="flex items-center space-x-3">
           <button
@@ -151,7 +163,7 @@ const CodebaseDetails: React.FC<CodebaseDetailsProps> = ({
         </div>
       </div>
 
-      <div className="mt-4 space-y-6 px-4">
+      <div className="mt-4 space-y-6 px-4 pb-16">
         <p className="mb-3 text-gray-700 dark:text-gray-100">{item.overview}</p>
         {item.diagram && <Mermaid chart={item.diagram} theme={theme} />}
         <Section
@@ -186,6 +198,15 @@ const CodebaseDetails: React.FC<CodebaseDetailsProps> = ({
         {item?.code?.length ? (
           <CodeSection code={item.code} theme={theme} />
         ) : null}
+      </div>
+      <div className="fixed bottom-0 left-0 right-0 flex justify-center bg-white p-4 dark:bg-gray-900">
+        <button
+          onClick={handleSendToChat}
+          className="flex items-center rounded-md bg-primary-500 px-4 py-2 text-white transition-colors hover:bg-primary-600 dark:bg-primary-600 dark:hover:bg-primary-700"
+        >
+          <FontAwesomeIcon icon={faComment} className="mr-2" />
+          Send Filename to Chat
+        </button>
       </div>
     </div>
   );
