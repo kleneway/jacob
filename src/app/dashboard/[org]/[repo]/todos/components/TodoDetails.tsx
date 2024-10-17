@@ -36,6 +36,7 @@ const TodoDetails: React.FC<TodoDetailsProps> = ({
 
   const [isGeneratingResearch, setIsGeneratingResearch] = useState(false);
   const [isStartingWork, setIsStartingWork] = useState(false);
+  const [runBuild, setRunBuild] = useState(false);
 
   const { mutateAsync: researchIssue } = api.todos.researchIssue.useMutation();
   const { mutateAsync: updateTodo } = api.todos.update.useMutation();
@@ -61,7 +62,10 @@ const TodoDetails: React.FC<TodoDetailsProps> = ({
 
   const handleStartWork = async () => {
     setIsStartingWork(true);
-    const updatedBody = `${selectedIssue?.body ?? ""}\n@jacob-ai-bot`;
+    let updatedBody = `${selectedIssue?.body ?? ""}\n@jacob-ai-bot`;
+    if (!runBuild) {
+      updatedBody += " --skip-build";
+    }
     try {
       await updateIssue({
         repo: `${org}/${repo}`,
@@ -115,17 +119,28 @@ const TodoDetails: React.FC<TodoDetailsProps> = ({
           </div>
         </div>
         {selectedTodo.status === TodoStatus.TODO && (
-          <button
-            onClick={handleStartWork}
-            disabled={isStartingWork}
-            className={`rounded-full px-4 py-2 text-white ${
-              isStartingWork
-                ? "cursor-not-allowed bg-gray-400"
-                : "bg-sunset-500 hover:bg-sunset-600 dark:bg-purple-700 dark:hover:bg-purple-600"
-            }`}
-          >
-            {isStartingWork ? "Starting Work..." : "Start Work"}
-          </button>
+          <div className="flex items-center space-x-4">
+            <label className="flex items-center space-x-2 text-sm text-gray-700 dark:text-gray-300">
+              <input
+                type="checkbox"
+                checked={runBuild}
+                onChange={(e) => setRunBuild(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 text-sunset-600 focus:ring-sunset-500 dark:border-gray-600 dark:bg-gray-700 dark:focus:ring-purple-600"
+              />
+              <span>Run Build</span>
+            </label>
+            <button
+              onClick={handleStartWork}
+              disabled={isStartingWork}
+              className={`rounded-full px-4 py-2 text-white ${
+                isStartingWork
+                  ? "cursor-not-allowed bg-gray-400"
+                  : "bg-sunset-500 hover:bg-sunset-600 dark:bg-purple-700 dark:hover:bg-purple-600"
+              }`}
+            >
+              {isStartingWork ? "Starting Work..." : "Start Work"}
+            </button>
+          </div>
         )}
       </div>
 
