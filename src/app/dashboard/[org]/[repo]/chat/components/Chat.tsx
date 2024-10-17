@@ -1,4 +1,3 @@
-// components/Chat.tsx
 import { useState, useEffect, useRef } from "react";
 import { type Message, useChat } from "ai/react";
 import { type Project } from "~/server/db/tables/projects.table";
@@ -22,6 +21,7 @@ interface ChatProps {
   contextItems: ContextItem[];
   org: string;
   repo: string;
+  selectedFilePath?: string;
 }
 
 export interface CodeFile {
@@ -44,7 +44,7 @@ const STARTING_MESSAGE = {
     "Hi, I'm JACoB. I can answer questions about your codebase. Ask me anything!",
 };
 
-export function Chat({ contextItems, org, repo }: ChatProps) {
+export function Chat({ contextItems, org, repo, selectedFilePath }: ChatProps) {
   const [artifactContent, setArtifactContent] = useState<string | null>(null);
   const [artifactFileName, setArtifactFileName] = useState<string>("");
   const [artifactLanguage, setArtifactLanguage] = useState<string>("");
@@ -81,7 +81,6 @@ export function Chat({ contextItems, org, repo }: ChatProps) {
     initialMessages: savedMessages,
     onResponse: async (response) => {
       console.log("onResponse", response);
-      // turn off the loading indicator
       setHasStartedStreaming(true);
     },
     onError: (error) => {
@@ -115,9 +114,6 @@ export function Chat({ contextItems, org, repo }: ChatProps) {
     const lastMessage = messages[messages.length - 1];
     if (!lastMessage) return;
     if (lastMessage.role === "assistant" && lastMessage.content.length > 0) {
-      // this is a workaround, but if the last message is an assistant message and there is
-      // more than a 1000ms gap between the last message and the onFinished call, then we know
-      // that the system is creating an artifact and we should show the loading card
       setIsCreatingArtifact(true);
     }
   }, [messages]);
@@ -126,7 +122,6 @@ export function Chat({ contextItems, org, repo }: ChatProps) {
 
   useEffect(() => {
     if (model) {
-      // when the model changes, move the messages from the previous model to the new model
       setSavedMessages(messages);
     }
   }, [model, messages]);
@@ -162,6 +157,20 @@ export function Chat({ contextItems, org, repo }: ChatProps) {
       setArtifactLanguage(language);
     }
   }, [codeContent]);
+
+  useEffect(() => {
+    if (selectedFilePath) {
+      const matchingFile = contextItems.find(
+        (item) => item.file === selectedFilePath,
+      );
+      if (matchingFile) {
+        setSelectedFiles([selectedFilePath]);
+        void refetchCodeContent();
+      } else {
+        toast.error("Selected file not found in the codebase context.");
+      }
+    }
+  }, [selectedFilePath, contextItems, refetchCodeContent]);
 
   const handleSearchResultSelect = (filePath: string) => {
     setSelectedFiles([filePath]);
