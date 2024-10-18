@@ -10,6 +10,7 @@ import {
   faChevronDown,
   faCopy,
   faCheck,
+  faComment,
 } from "@fortawesome/free-solid-svg-icons";
 import Mermaid from "./Mermaid";
 import Markdown, { type Components } from "react-markdown";
@@ -25,6 +26,7 @@ import {
 } from "react-syntax-highlighter/dist/cjs/styles/prism";
 import { faClipboard } from "@fortawesome/free-solid-svg-icons";
 import { toast } from "react-toastify";
+import { useRouter } from 'next/navigation';
 
 interface CodebaseDetailsProps {
   item: ContextItem;
@@ -105,6 +107,7 @@ const CodebaseDetails: React.FC<CodebaseDetailsProps> = ({
   theme,
 }) => {
   const [copyStatus, setCopyStatus] = useState(false);
+  const router = useRouter();
 
   const handleCopy = () => {
     navigator.clipboard
@@ -116,6 +119,15 @@ const CodebaseDetails: React.FC<CodebaseDetailsProps> = ({
       .catch(() => {
         console.error("Failed to copy context item");
       });
+  };
+
+  const handleSendToChat = () => {
+    if (item.file) {
+      const encodedFilePath = encodeURIComponent(item.file);
+      router.push(`/dashboard/${item.org}/${item.repo}/chat?file_path=${encodedFilePath}`);
+    } else {
+      toast.error("No file selected. Please select a file before sending to chat.");
+    }
   };
 
   return (
@@ -186,6 +198,16 @@ const CodebaseDetails: React.FC<CodebaseDetailsProps> = ({
         {item?.code?.length ? (
           <CodeSection code={item.code} theme={theme} />
         ) : null}
+      </div>
+
+      <div className="sticky bottom-0 left-0 right-0 bg-white p-4 dark:bg-gray-900">
+        <button
+          onClick={handleSendToChat}
+          className="flex w-full items-center justify-center rounded-lg bg-aurora-500 px-4 py-2 text-white transition-colors hover:bg-aurora-600 dark:bg-aurora-600 dark:hover:bg-aurora-700"
+        >
+          <FontAwesomeIcon icon={faComment} className="mr-2" />
+          Send Filename to Chat
+        </button>
       </div>
     </div>
   );
