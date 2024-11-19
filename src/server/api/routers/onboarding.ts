@@ -40,9 +40,15 @@ export const onboardingRouter = createTRPCRouter({
       },
     ),
   saveSettings: protectedProcedure
-    .input(z.object({ settings: z.any(), org: z.string(), repo: z.string() }))
-    .mutation(async ({ input: { settings, org, repo } }) => {
-      // Fetch the project from the database
+    .input(
+      z.object({
+        settings: z.any(),
+        org: z.string(),
+        repo: z.string(),
+        evaluationData: z.any().nullable().optional(),
+      }),
+    )
+    .mutation(async ({ input: { settings, org, repo, evaluationData } }) => {
       const project = await db.projects.findBy({
         repoFullName: `${org}/${repo}`,
       });
@@ -51,8 +57,9 @@ export const onboardingRouter = createTRPCRouter({
         throw new Error("Project not found");
       }
 
-      // Update the project with the new settings
-      await db.projects.find(project.id).update({ settings });
+      await db.projects
+        .find(project.id)
+        .update({ settings, evaluationData: evaluationData ?? null });
     }),
   checkBuild: protectedProcedure
     .input(
