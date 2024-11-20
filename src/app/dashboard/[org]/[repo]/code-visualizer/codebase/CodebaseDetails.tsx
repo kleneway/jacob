@@ -57,7 +57,7 @@ export const renderers: Partial<Components> = {
     children: React.ReactNode;
     theme?: "light" | "dark";
   }) => {
-    const match = /language-(\w+)/.exec(className || "");
+    const match = /language-(\w+)/.exec(className ?? "");
     if (!inline && match) {
       return (
         <div className="relative">
