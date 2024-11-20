@@ -49,12 +49,14 @@ export const renderers: Partial<Components> = {
     inline,
     className,
     children,
+    theme,
     ...props
   }: {
-    inline: boolean;
-    className: string;
+    inline?: boolean;
+    className?: string;
     children: React.ReactNode;
-  } & React.HTMLAttributes<HTMLElement>) => {
+    theme?: "light" | "dark";
+  }) => {
     const match = /language-(\w+)/.exec(className || "");
     if (!inline && match) {
       return (
@@ -66,7 +68,7 @@ export const renderers: Partial<Components> = {
             <FontAwesomeIcon icon={faClipboard} />
           </button>
           <SyntaxHighlighter
-            style={props.theme === "dark" ? oneDark : oneLight}
+            style={theme === "dark" ? oneDark : oneLight}
             language={match[1]}
             PreTag="div"
           >
