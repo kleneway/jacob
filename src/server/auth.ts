@@ -25,6 +25,7 @@ declare module "next-auth/adapters" {
   interface AdapterUser {
     login?: string;
     role?: UserRole;
+    jiraToken?: string;
   }
 }
 
@@ -34,8 +35,8 @@ declare module "next-auth" {
       id: string;
       login: string;
       role?: UserRole;
+      jiraToken?: string;
       expires?: string; // ISO DateString
-      // ...other properties
     } & DefaultSession["user"];
     accessToken: string;
   }
@@ -45,9 +46,9 @@ declare module "next-auth" {
   }
 
   interface User {
-    // ...other properties
     role: UserRole;
     login: string;
+    jiraToken?: string;
     expires?: string;
   }
 }
@@ -118,6 +119,7 @@ export const authOptions: NextAuthOptions = {
           id: userId,
           role: user.role,
           login: user.login,
+          jiraToken: user.jiraToken,
           expires: session.expires,
         },
       };
@@ -150,15 +152,7 @@ export const authOptions: NextAuthOptions = {
         };
       },
     }),
-    /**
-     * ...add more providers here.
-     *
-     * Most other providers require a bit more work than the Discord provider. For example, the
-     * GitHub provider requires you to add the `refresh_token_expires_in` field to the Account
-     * model. Refer to the NextAuth.js docs for the provider you want to use. Example:
-     *
-     * @see https://next-auth.js.org/providers/github
-     */
+    // ...add more providers here.
   ],
 };
 
