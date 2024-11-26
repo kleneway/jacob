@@ -25,6 +25,7 @@ declare module "next-auth/adapters" {
   interface AdapterUser {
     login?: string;
     role?: UserRole;
+    jiraToken?: string;
   }
 }
 
@@ -35,6 +36,7 @@ declare module "next-auth" {
       login: string;
       role?: UserRole;
       expires?: string; // ISO DateString
+      jiraToken?: string;
       // ...other properties
     } & DefaultSession["user"];
     accessToken: string;
@@ -49,6 +51,7 @@ declare module "next-auth" {
     role: UserRole;
     login: string;
     expires?: string;
+    jiraToken?: string;
   }
 }
 
@@ -110,6 +113,7 @@ export const authOptions: NextAuthOptions = {
       const { session, user } = params;
       const userId = parseInt(user.id, 10);
       const account = await db.accounts.findBy({ userId });
+      const dbUser = await db.users.find(userId);
       return {
         ...session,
         accessToken: account.access_token,
@@ -119,6 +123,7 @@ export const authOptions: NextAuthOptions = {
           role: user.role,
           login: user.login,
           expires: session.expires,
+          jiraToken: dbUser.jiraToken,
         },
       };
     },
