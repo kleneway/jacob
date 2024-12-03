@@ -13,6 +13,7 @@ import TodoDetailsPlaceholder from "~/app/_components/DetailsPlaceholder";
 import { useRouter } from "next/navigation";
 
 const MOBILE_WIDTH_BREAKPOINT = 768;
+import { type Todo as TodoType } from "~/server/api/routers/events";
 
 export interface Issue {
   title: string;
@@ -178,6 +179,13 @@ const Todo: React.FC<TodoProps> = ({ org, repo }) => {
 
       {/* Details column: Selected todo details */}
       <div className="hide-scrollbar hidden h-[calc(100vh-116px)] overflow-y-scroll bg-white p-6 dark:bg-gray-800 md:block md:w-2/3">
+        {selectedTodo?.evaluationScore && selectedTodo.evaluationScore < 4 ? (
+          <div className="mb-4 rounded-md border border-yellow-400 bg-yellow-50 p-4 text-yellow-800">
+            <h3 className="text-lg font-semibold">Feedback:</h3>
+            <p>{selectedTodo.feedback}</p>
+          </div>
+        ) : null}
+
         {selectedTodo ? (
           <IssueDetails
             selectedTodo={selectedTodo}

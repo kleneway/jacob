@@ -3,6 +3,7 @@ import { evaluateIssue } from "./evaluateIssue";
 import * as openaiRequest from "../openai/request";
 import { PlanningAgentActionType } from "../db/enums";
 import { type StandardizedPath } from "./files";
+import { evaluateJiraIssue } from "./evaluateIssue";
 
 vi.mock("../openai/request", () => ({
   sendGptRequestWithSchema: vi.fn(),
@@ -244,6 +245,33 @@ describe("evaluateIssue", () => {
       expect.any(Object),
       0.4,
       baseEventData,
+      3,
+      "claude-3-5-sonnet-20241022",
+    );
+  });
+
+  it("evaluateJiraIssue should return appropriate evaluation", async () => {
+    const mockJiraEvaluation = {
+      evaluationScore: 3.5,
+      feedback: "The issue description lacks sufficient detail.",
+    };
+
+    vi.mocked(openaiRequest.sendGptRequestWithSchema).mockResolvedValue(
+      mockJiraEvaluation,
+    );
+
+    const result = await evaluateJiraIssue(
+      "Implement authentication",
+      "We need to add login functionality.",
+    );
+
+    expect(result).toEqual(mockJiraEvaluation);
+    expect(openaiRequest.sendGptRequestWithSchema).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.any(String),
+      expect.any(Object),
+      0.4,
+      undefined,
       3,
       "claude-3-5-sonnet-20241022",
     );

@@ -5,6 +5,13 @@ import { type ContextItem } from "./codebaseContext";
 import { type PlanStep } from "../db/tables/planSteps.table";
 import { PlanningAgentActionType } from "../db/enums";
 
+const JiraEvaluationSchema = z.object({
+  evaluationScore: z.number().min(1).max(5),
+  feedback: z.string().optional(),
+});
+
+export type JiraEvaluation = z.infer<typeof JiraEvaluationSchema>;
+
 const EvaluationSchema = z.object({
   confidenceScore: z.number().min(0).max(5),
   complexityFactors: z.object({
@@ -144,6 +151,48 @@ Please provide your evaluation in the following JSON format:
     EvaluationSchema,
     0.4,
     baseEventData,
+    3,
+    "claude-3-5-sonnet-20241022",
+  );
+
+  return evaluation;
+}
+
+export async function evaluateJiraIssue(
+  title: string,
+  description: string,
+): Promise<JiraEvaluation> {
+  const systemPrompt = `You are an expert software architect and technical evaluator. Your task is to analyze the given Jira issue and provide an evaluation of its quality and readiness for an AI coding agent to address it.
+
+Consider the following when evaluating:
+- Clarity and specificity of the issue title and description.
+- Completeness of the information required to implement the task.
+- Whether the requirements are actionable without ambiguity.
+
+Provide a concise evaluation score and feedback message if necessary.`;
+
+  const userPrompt = `Jira Issue Title: "${title}"
+
+Jira Issue Description: "${description}"
+
+Based on the above, provide:
+
+- An evaluation score between 1 and 5 (half-points acceptable), indicating how likely it is that an AI coding agent can flawlessly complete the task.
+
+- If the score is less than 4, provide a one-sentence feedback message informing the user what needs to be changed to make the ticket actionable by JACoB.
+
+Provide the response in the following JSON format:
+{
+  "evaluationScore": number,
+  "feedback": string // optional, include only if score is less than 4
+}`;
+
+  const evaluation = await sendGptRequestWithSchema(
+    userPrompt,
+    systemPrompt,
+    JiraEvaluationSchema,
+    0.4,
+    undefined,
     3,
     "claude-3-5-sonnet-20241022",
   );
