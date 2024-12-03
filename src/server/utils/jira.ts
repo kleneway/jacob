@@ -13,6 +13,7 @@ import { refreshGitHubAccessToken } from "../github/tokens";
 import { createGitHubIssue, rewriteGitHubIssue } from "../github/issue";
 import { uploadToS3, getSignedUrl, IMAGE_TYPE } from "../utils/images";
 const bucketName = process.env.BUCKET_NAME ?? "";
+import { evaluateJiraIssue } from "./evaluateIssue";
 
 export async function refreshJiraAccessToken(
   accountId: number,
@@ -336,14 +337,33 @@ export async function fetchNewJiraIssues({
         continue;
       }
 
-      console.log(
-        `Repo ${project.repoFullName}: Creating new Jira issue ${issue.id}`,
+      // Evaluate the Jira issue
+      const evaluation = await evaluateJiraIssue(
+        issue.title,
+        issue.description,
       );
+
+      // Save the issue with evaluation data
       await db.issues.create({
         issueBoardId: issueBoard.id,
         issueId: issue.id,
         title: issue.title,
+        jiraIssueDescription: issue.description,
+        evaluationScore: evaluation.evaluationScore,
+        feedback: evaluation.feedback ?? null,
+        didCreateGithubIssue: evaluation.evaluationScore >= 4,
       });
+
+      if (evaluation.evaluationScore < 4) {
+        console.log(
+          `Repo ${project.repoFullName}: Jira issue ${issue.id} did not pass evaluation (score: ${evaluation.evaluationScore}). Not creating GitHub issue.`,
+        );
+        continue;
+      }
+
+      console.log(
+        `Repo ${project.repoFullName}: Creating GitHub issue for Jira issue ${issue.id}`,
+      );
 
       const owner = project.repoFullName.split("/")[0];
       const repo = project.repoFullName.split("/")[1];
