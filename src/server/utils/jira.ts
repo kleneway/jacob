@@ -347,6 +347,23 @@ export async function fetchNewJiraIssues({
 
       const owner = project.repoFullName.split("/")[0];
       const repo = project.repoFullName.split("/")[1];
+
+      const evaluation = await evaluateJiraIssue(
+        issue.title,
+        issue.description,
+      );
+      if (evaluation.score < 4) {
+        await db.issues.find(issue.id).update({
+          evaluationScore: evaluation.score,
+          evaluationFeedback: evaluation.feedback,
+          status: "rejected",
+        });
+        console.log(
+          `Skipped creating GitHub issue for Jira issue ${issue.id} due to low evaluation score.`,
+        );
+        continue;
+      }
+
       if (!owner || !repo) {
         throw new Error("Invalid repo full name");
       }

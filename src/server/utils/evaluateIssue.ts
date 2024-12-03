@@ -150,3 +150,10 @@ Please provide your evaluation in the following JSON format:
 
   return evaluation;
 }
+
+export async function evaluateJiraIssue(
+  title: string,
+  description: string,
+): Promise<{ score: number; feedback?: string }> {
+  const systemPrompt = `You are an expert issue evaluator. Assess the following Jira issue based on its title and description. Provide a confidence score between 1 and 5 indicating how likely it is that an AI coding agent can flawlessly complete the task. If the score is less than 4, provide a one-sentence feedback message explaining what needs to be changed to make the ticket actionable by JACoB.`;
+}
