@@ -2,6 +2,8 @@ import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons";
 
+import DesignOverview from "./DesignOverview";
+
 interface DesignProps {
   org: string;
   repo: string;
@@ -18,6 +20,7 @@ const DesignComponent: React.FC<DesignProps> = ({ org, repo }) => {
             </h2>
           </div>
           <div className="space-y-6 rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-colors dark:border-gray-700 dark:bg-gray-800 sm:p-6">
+            <DesignOverview org={org} repo={repo} />
             <div>
               <h3 className="text-lg font-semibold text-gray-900 transition-colors dark:text-white sm:text-xl">
                 Transform Your Figma Designs into React Components
